@@ -1,28 +1,44 @@
+using System;
 using UnityEngine;
 
 public class GameGrid : MonoBehaviour
 {
-    [SerializeField] private Vector2Int GridSize = new Vector2Int(10, 10);
+    public static GameGrid Instance { get; private set; }
+    public Vector2Int GridSize { get; private set; } = new Vector2Int(10, 10);
 
-    private StructureAndHisSettings[,] _structurePositionOnGrid;
-    private StructureAndHisSettings _flyingStructure;
+    private BildingFoundation[,] _bildingFoundationsGrid;
+    private DistrictFoundation[,] _districtFoundationsGrid;
+    private CitiesGrid[,] _cityPositionOnGrid;
+
     private Camera _mainCamera;
+    private FlyingStructure _flyingStructure;
 
 
     private void Awake()
     {
-        _structurePositionOnGrid = new StructureAndHisSettings[GridSize.x, GridSize.y];
+        //Init//
+        _bildingFoundationsGrid = new BildingFoundation[GridSize.x, GridSize.x];
+        _districtFoundationsGrid = new DistrictFoundation[GridSize.x, GridSize.y];
+        _cityPositionOnGrid = new CitiesGrid[GridSize.x, GridSize.y];
         _mainCamera = Camera.main;
     }
-
-    public void StartPlacingbuiling(StructureAndHisSettings structureprefab)
+    public void StartPlacing(FlyingStructure prefab)
     {
         if (_flyingStructure != null)
             Destroy(_flyingStructure.gameObject);
-
-        _flyingStructure = Instantiate(structureprefab);
+        _flyingStructure = prefab;
+        switch (_flyingStructure.GetType().ToString())
+        {
+            case "BildingFoundation":
+                BildingCreator BCreator = new BildingFoundationFactory();
+                _flyingStructure = BCreator.CreateBilding(prefab.gameObject);
+                break;
+            case "DistrictFoundation":
+                DistrictCreator DCreator = new DistrictFoundationFactory();
+                _flyingStructure = DCreator.CreateDistrict(prefab.gameObject);
+                break;
+        }
     }
-
 
 
     private void Update()
@@ -45,53 +61,102 @@ public class GameGrid : MonoBehaviour
                     available = false;
                 if (y < 0 || y > GridSize.y - _flyingStructure.Size.y)
                     available = false;
-                if (available && IsPlaceTaken(x, y))
+
+                if (available && IsPlaceTakenForBildings(x, y) && _flyingStructure.GetType() == typeof(BildingFoundation))
                     available = false;
+                else if (available && IsPlaceTakenForDistricts(x, y) && _flyingStructure.GetType() == typeof(DistrictFoundation))
+                    available = false;
+
 
                 _flyingStructure.SetError(available);
                 _flyingStructure.transform.position = new Vector3(x + 0.5f, 0, y + 0.5f);
 
                 //Rotate
-
                 if (Input.GetKeyDown(KeyCode.R))
                 {
-                    _flyingStructure.RotateBilding(90);
+                    Debug.Log(_flyingStructure.GetType());
+                    _flyingStructure.Rotate(90);
                 }
-
                 //Place bilding
 
                 if (available && Input.GetMouseButtonDown(0))
                 {
-                    PlaceFlyingStructure(x, y);
+                    switch ((_flyingStructure.GetType()).ToString())
+                    {
+                        case "BildingFoundation":
+                            PlaceFlyingBilding(x, y);
+                            break;
+                        case "DistrictFoundation":
+                            PlaceflyingDistrict(x, y);
+                            break;
+                    }
                 }
-
-
             }
         }
-
     }
-    private bool IsPlaceTaken(int placeX, int placeY)
+    private bool IsPlaceTakenForBildings(int placeX, int placeY)
     {
         for (int x = 0; x < _flyingStructure.Size.x; x++)
         {
             for (int y = 0; y < _flyingStructure.Size.y; y++)
             {
-                if (_structurePositionOnGrid[placeX + x, placeY + y] != null)
+                if (_bildingFoundationsGrid[placeX + x, placeY + y] != null)
                     return true;
             }
         }
 
         return false;
     }
-    private void PlaceFlyingStructure(int placeX, int placeY)
+    private bool IsPlaceTakenForDistricts(int placeX, int placeY)
     {
         for (int x = 0; x < _flyingStructure.Size.x; x++)
         {
             for (int y = 0; y < _flyingStructure.Size.y; y++)
             {
-                _structurePositionOnGrid[placeX + x, placeY + y] = _flyingStructure;
+                if (_districtFoundationsGrid[placeX + x, placeY + y] != null)
+                    return true;
+            }
+        }
+
+        return false;
+    }
+    private void PlaceFlyingBilding(int placeX, int placeY)
+    {
+        for (int x = 0; x < _flyingStructure.Size.x; x++)
+        {
+            for (int y = 0; y < _flyingStructure.Size.y; y++)
+            {
+                _bildingFoundationsGrid[placeX + x, placeY + y] = (BildingFoundation)_flyingStructure;
             }
         }
         _flyingStructure = null;
     }
+
+    private void PlaceflyingDistrict(int placeX, int placeY)
+    {
+        for (int x = 0; x < _flyingStructure.Size.x; x++)
+        {
+            for (int y = 0; y < _flyingStructure.Size.y; y++)
+            {
+                _districtFoundationsGrid[placeX + x, placeY + y] = (DistrictFoundation)_flyingStructure;
+            }
+        }
+        _flyingStructure = null;
+
+    }
+
+    public class CitiesGrid
+    {
+        public void SetCitiesOnGrid(int placeX, int placeY, int citySize)
+        {
+            for (int i = 0; i < citySize; i++)
+            {
+                for (int j = 0; j < citySize; j++)
+                {
+                    //_citiesGrid[placeX + i, placeY + j] = new CitiesGrid();
+                }
+            }
+        }
+    }
+
 }
