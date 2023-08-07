@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public class BildingFoundationFactory : BildingCreator
@@ -6,7 +7,12 @@ public class BildingFoundationFactory : BildingCreator
     {
         var Prefab = prefab;
         var gameObject = GameObject.Instantiate(prefab);
-        var Bilding = gameObject.GetComponent<BildingFoundation>();
-        return Bilding;
+        if (gameObject.GetComponent<BildingFoundation>() != null)
+        {
+            var Bilding = gameObject.GetComponent<BildingFoundation>();
+            return Bilding;
+        }
+        else
+            throw new ArgumentNullException(nameof(BildingFoundation));
     }
 }

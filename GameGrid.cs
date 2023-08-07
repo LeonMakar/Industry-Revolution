@@ -1,4 +1,3 @@
-using System;
 using UnityEngine;
 
 public class GameGrid : MonoBehaviour
@@ -8,7 +7,7 @@ public class GameGrid : MonoBehaviour
 
     private BildingFoundation[,] _bildingFoundationsGrid;
     private DistrictFoundation[,] _districtFoundationsGrid;
-    private CitiesGrid[,] _cityPositionOnGrid;
+    private CityFoundation[,] _cityPositionOnGrid;
 
     private Camera _mainCamera;
     private FlyingStructure _flyingStructure;
@@ -19,7 +18,7 @@ public class GameGrid : MonoBehaviour
         //Init//
         _bildingFoundationsGrid = new BildingFoundation[GridSize.x, GridSize.x];
         _districtFoundationsGrid = new DistrictFoundation[GridSize.x, GridSize.y];
-        _cityPositionOnGrid = new CitiesGrid[GridSize.x, GridSize.y];
+        _cityPositionOnGrid = new CityFoundation[GridSize.x, GridSize.y];
         _mainCamera = Camera.main;
     }
     public void StartPlacing(FlyingStructure prefab)
@@ -30,12 +29,16 @@ public class GameGrid : MonoBehaviour
         switch (_flyingStructure.GetType().ToString())
         {
             case "BildingFoundation":
-                BildingCreator BCreator = new BildingFoundationFactory();
-                _flyingStructure = BCreator.CreateBilding(prefab.gameObject);
+                BildingCreator bildingCreator = new BildingFoundationFactory();
+                _flyingStructure = bildingCreator.CreateBilding(prefab.gameObject);
                 break;
             case "DistrictFoundation":
-                DistrictCreator DCreator = new DistrictFoundationFactory();
-                _flyingStructure = DCreator.CreateDistrict(prefab.gameObject);
+                DistrictCreator districtCreator = new DistrictFoundationFactory();
+                _flyingStructure = districtCreator.CreateDistrict(prefab.gameObject);
+                break;
+            case "CityFoundation":
+                CityCreator cityCreator = new CityFoundationFactory();
+                _flyingStructure = cityCreator.CreatCity(prefab.gameObject);
                 break;
         }
     }

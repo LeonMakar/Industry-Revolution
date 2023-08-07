@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public class DistrictFoundationFactory : DistrictCreator
@@ -6,7 +7,12 @@ public class DistrictFoundationFactory : DistrictCreator
     {
         var prefab = Prefab;
         var gameObject = GameObject.Instantiate(prefab);
-        var District = gameObject.GetComponent<DistrictFoundation>();
-        return District;
+        if (gameObject.GetComponent<DistrictFoundation>() != null)
+        {
+            var District = gameObject.GetComponent<DistrictFoundation>();
+            return District;
+        }
+        else
+            throw new ArgumentNullException(nameof(CityFoundation));
     }
 }
