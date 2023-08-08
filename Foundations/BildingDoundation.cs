@@ -15,7 +15,6 @@ public class CityFoundation : FlyingStructure
 
                 Gizmos.DrawCube(transform.position + new Vector3(x, 0, y), new Vector3(1, .1f, 1));
             }
-
         }
     }
 }

@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class GameGrid : MonoBehaviour
@@ -9,36 +11,36 @@ public class GameGrid : MonoBehaviour
     private DistrictFoundation[,] _districtFoundationsGrid;
     private CityFoundation[,] _cityPositionOnGrid;
 
+    public bool IsUnderCity = false;
     private Camera _mainCamera;
     private FlyingStructure _flyingStructure;
 
 
     private void Awake()
     {
+        Instance = this;
         //Init//
         _bildingFoundationsGrid = new BildingFoundation[GridSize.x, GridSize.x];
         _districtFoundationsGrid = new DistrictFoundation[GridSize.x, GridSize.y];
         _cityPositionOnGrid = new CityFoundation[GridSize.x, GridSize.y];
         _mainCamera = Camera.main;
     }
-    public void StartPlacing(FlyingStructure prefab)
+    public void StartPlacing(GameObject prefab)
     {
         if (_flyingStructure != null)
             Destroy(_flyingStructure.gameObject);
-        _flyingStructure = prefab;
+        _flyingStructure = prefab.GetComponentInChildren<FlyingStructure>();
+        FoundationCreator creator = new FoundationFactory();
         switch (_flyingStructure.GetType().ToString())
         {
             case "BildingFoundation":
-                BildingCreator bildingCreator = new BildingFoundationFactory();
-                _flyingStructure = bildingCreator.CreateBilding(prefab.gameObject);
+                _flyingStructure = creator.CreateBilding("path");
                 break;
             case "DistrictFoundation":
-                DistrictCreator districtCreator = new DistrictFoundationFactory();
-                _flyingStructure = districtCreator.CreateDistrict(prefab.gameObject);
+                _flyingStructure = creator.CreateDistrict("path");
                 break;
             case "CityFoundation":
-                CityCreator cityCreator = new CityFoundationFactory();
-                _flyingStructure = cityCreator.CreatCity(prefab.gameObject);
+                _flyingStructure = creator.CreateCity("path");
                 break;
         }
     }
@@ -65,14 +67,26 @@ public class GameGrid : MonoBehaviour
                 if (y < 0 || y > GridSize.y - _flyingStructure.Size.y)
                     available = false;
 
-                if (available && IsPlaceTakenForBildings(x, y) && _flyingStructure.GetType() == typeof(BildingFoundation))
-                    available = false;
-                else if (available && IsPlaceTakenForDistricts(x, y) && _flyingStructure.GetType() == typeof(DistrictFoundation))
-                    available = false;
+                if (available)
+                    switch ((_flyingStructure.GetType()).ToString())
+                    {
+                        case "BildingFoundation":
+                            if (IsPlaceTakenForBildings(x, y) == true || IsUnderCity == false || (_flyingStructure.GetType().ToString() == "BildingFoundation") == false)
+                                available = false;
+                            break;
+                        case "DistrictFoundation":
+                            if (IsPlaceTakenForDistricts(x, y) || IsUnderCity == false || (_flyingStructure.GetType().ToString() == "DistrictFoundation") == false)
+                                available = false;
+                            break;
+                        case "CityFoundation":
+                            if (IsPlaceTakenForCity(x, y) || (_flyingStructure.GetType().ToString() == "CityFoundation") == false)
+                                available = false;
+                            break;
+                    }
 
-
+                Debug.Log("IsUnderCity= " + IsUnderCity);
                 _flyingStructure.SetError(available);
-                _flyingStructure.transform.position = new Vector3(x + 0.5f, 0, y + 0.5f);
+                _flyingStructure.transform.position = new Vector3(x, 0, y);
 
                 //Rotate
                 if (Input.GetKeyDown(KeyCode.R))
@@ -80,17 +94,22 @@ public class GameGrid : MonoBehaviour
                     Debug.Log(_flyingStructure.GetType());
                     _flyingStructure.Rotate(90);
                 }
-                //Place bilding
+                //Place structure
 
                 if (available && Input.GetMouseButtonDown(0))
                 {
                     switch ((_flyingStructure.GetType()).ToString())
                     {
                         case "BildingFoundation":
-                            PlaceFlyingBilding(x, y);
+                            if (IsUnderCity)
+                                PlaceFlyingBilding(x, y);
                             break;
                         case "DistrictFoundation":
-                            PlaceflyingDistrict(x, y);
+                            if (IsUnderCity)
+                                PlaceflyingDistrict(x, y);
+                            break;
+                        case "CityFoundation":
+                            PlaceflyingCity(x, y);
                             break;
                     }
                 }
@@ -123,11 +142,23 @@ public class GameGrid : MonoBehaviour
 
         return false;
     }
-    private void PlaceFlyingBilding(int placeX, int placeY)
+    private bool IsPlaceTakenForCity(int placeX, int placeY)
     {
         for (int x = 0; x < _flyingStructure.Size.x; x++)
         {
             for (int y = 0; y < _flyingStructure.Size.y; y++)
+            {
+                if (_cityPositionOnGrid[placeX + x, placeY + y] != null)
+                    return true;
+            }
+        }
+        return false;
+    }
+    private void PlaceFlyingBilding(int placeX, int placeY)
+    {
+        for (int x = 1; x < _flyingStructure.Size.x; x++)
+        {
+            for (int y = 1; y < _flyingStructure.Size.y; y++)
             {
                 _bildingFoundationsGrid[placeX + x, placeY + y] = (BildingFoundation)_flyingStructure;
             }
@@ -145,21 +176,21 @@ public class GameGrid : MonoBehaviour
             }
         }
         _flyingStructure = null;
-
     }
-
-    public class CitiesGrid
+    private void PlaceflyingCity(int placeX, int placeY)
     {
-        public void SetCitiesOnGrid(int placeX, int placeY, int citySize)
+        for (int x = 0; x < _flyingStructure.Size.x; x++)
         {
-            for (int i = 0; i < citySize; i++)
+            for (int y = 0; y < _flyingStructure.Size.y; y++)
             {
-                for (int j = 0; j < citySize; j++)
-                {
-                    //_citiesGrid[placeX + i, placeY + j] = new CitiesGrid();
-                }
+                _cityPositionOnGrid[placeX + x, placeY + y] = (CityFoundation)_flyingStructure;
             }
         }
+        _flyingStructure = null;
     }
-
 }
+//////////////////////
+///
+
+
+
