@@ -10,7 +10,7 @@ public class GridSearch : MonoBehaviour
         public List<Point> Path { get; set; }
     }
 
-    public static List<Point> AStarSearch(Grid grid, Point startPosition, Point endPosition, bool isAgent = false)
+    public static List<Point> AStarSearch(Griddd grid, Point startPosition, Point endPosition, bool isAgent = false)
     {
         List<Point> path = new List<Point>();
 

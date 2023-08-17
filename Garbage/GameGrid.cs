@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
@@ -25,24 +26,28 @@ public class GameGrid : MonoBehaviour
         _cityPositionOnGrid = new CityFoundation[GridSize.x, GridSize.y];
         _mainCamera = Camera.main;
     }
-    public void StartPlacing(GameObject prefab)
+    public void StartPlacing(StructureType foundationType)
     {
         if (_flyingStructure != null)
             Destroy(_flyingStructure.gameObject);
-        _flyingStructure = prefab.GetComponentInChildren<FlyingStructure>();
         FoundationCreator creator = new FoundationFactory();
-        switch (_flyingStructure.GetType().ToString())
-        {
-            case "BildingFoundation":
-                _flyingStructure = creator.CreateBilding("path");
-                break;
-            case "DistrictFoundation":
-                _flyingStructure = creator.CreateDistrict("path");
-                break;
-            case "CityFoundation":
-                _flyingStructure = creator.CreateCity("path");
-                break;
-        }
+        _flyingStructure = creator.Create(foundationType);
+
+        //_flyingStructure = prefab.GetComponentInChildren<FlyingStructure>();
+        //switch (_flyingStructure.GetType().ToString())
+        //{
+        //    case "BildingFoundation":
+        //        _flyingStructure = creator.CreateFoundation(FoundationType.Bilding);
+        //        break;
+        //    case "DistrictFoundation":
+        //        _flyingStructure = creator.CreateFoundation(FoundationType.District);
+        //        break;
+        //    case "CityFoundation":
+        //        _flyingStructure = creator.CreateFoundation(FoundationType.City);
+        //        break;
+        //    default:
+        //        throw new ArgumentOutOfRangeException();
+        //}
     }
 
 

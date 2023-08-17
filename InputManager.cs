@@ -7,6 +7,8 @@ public class InputManager : MonoBehaviour
     public Action<Vector3Int> OnMouseClick, OnMouseHold;
     public Action OnMouseUp;
 
+
+
     [SerializeField] Camera mainCamera;
 
     public LayerMask groundMask;
@@ -21,15 +23,27 @@ public class InputManager : MonoBehaviour
         CheckClickHoldEvent();
         CheckArrowInput();
     }
+    public Vector2Int? CursorPosiiton()
+    {
+        Vector2Int postion2Int;
+        if (RaycastGround() != null)
+        {
+            postion2Int = new Vector2Int(RaycastGround().Value.x, RaycastGround().Value.z);
+            return postion2Int;
+        }
+        else
+            return null;
 
+    }
     private Vector3Int? RaycastGround()
     {
         RaycastHit hit;
         Ray ray = mainCamera.ScreenPointToRay(Input.mousePosition);
         if (Physics.Raycast(ray, out hit, Mathf.Infinity, groundMask))
         {
-            Vector3Int positionInt = Vector3Int.RoundToInt(hit.point);
-            return positionInt;
+            Vector3Int positionInt = Vector3Int.FloorToInt(hit.point);
+            Vector3Int position = new Vector3Int(positionInt.x, 0, positionInt.z);
+            return position;
         }
         return null;
     }
@@ -65,7 +79,7 @@ public class InputManager : MonoBehaviour
             var position = RaycastGround();
             if (position != null)
             {
-                OnMouseClick?.Invoke(position.Value);
+                EventBus.Instance.Invoke<MouseIsClickedSignal>(new MouseIsClickedSignal(position.Value));
             }
         }
     }

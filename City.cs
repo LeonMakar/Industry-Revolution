@@ -6,7 +6,7 @@ public class City : MonoBehaviour, IFlyingStructure
     [SerializeField] private GameObject _errorBaner;
     [SerializeField] private GameObject _bilding;
 
-    public Vector2Int Size { get => _size;}
+    public Vector2Int Size { get => _size; }
     public void SetError(bool availible)
     {
         if (!availible)
@@ -19,4 +19,3 @@ public class City : MonoBehaviour, IFlyingStructure
         _bilding.transform.Rotate(transform.rotation.x, transform.rotation.y + angleRotate, transform.rotation.z);
     }
 }
-

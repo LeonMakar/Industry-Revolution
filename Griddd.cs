@@ -55,7 +55,7 @@ public enum CellType
     None = 6,
 }
 
-public class Grid
+public class Griddd
 {
     private CellType[,] _grid;
 
@@ -68,7 +68,7 @@ public class Grid
     private List<Point> _roadList = new List<Point>();
     private List<Point> _specialStructure = new List<Point>();
 
-    public Grid(int width, int height)
+    public Griddd(int width, int height)
     {
         _width = width;
         _height = height;

@@ -2,8 +2,8 @@
 
 public class CameraMovement : MonoBehaviour
 {
-    public Camera gameCamera;
-    public float cameraMovementSpeed = 5;
+    private Camera gameCamera;
+    [SerializeField] private float cameraMovementSpeed = 5;
 
     private void Start()
     {
