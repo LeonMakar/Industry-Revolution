@@ -7,6 +7,11 @@ public class NodeData
     private Vector3Int _position;
 
 
+    public NodeData(int x, int z)
+    {
+        _position = new Vector3Int(x, 0, z);
+    }
+
     public Megapolis City;
 
     public NodeType TypeOfNode => _nodeType;
@@ -17,19 +22,14 @@ public class NodeData
         City = city;
     }
 
-    public void MakeNodeSetup(NodeType type, Vector3Int position)
+    public void MakeNodeSetup(NodeType type)
     {
         SetNodeType(type);
-        SetNodePosition(position);
     }
 
     private void SetNodeType(NodeType nodeType)
     {
         _nodeType = nodeType;
-    }
-    private void SetNodePosition(Vector3Int position)
-    {
-        _position = position;
     }
 }
 
@@ -39,4 +39,5 @@ public enum NodeType
     Empty = 0,
     Road = 1,
     Bilding = 2,
+    Obstacle = 3,
 }

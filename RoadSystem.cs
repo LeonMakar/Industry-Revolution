@@ -26,15 +26,7 @@ public class RoadSystem : MonoBehaviour
         temporaryPlacementPositions.Clear();
         temporaryPlacementPositions.Add(position);
         _placementSystem.PlaceTemporaryStructure(position, CellType.Road, StructureType.Road, prefab) ;
-        FixRoadPrefabs();
     }
 
-    private void FixRoadPrefabs()
-    {
-        foreach (var temporaryPosition in temporaryPlacementPositions)
-        {
-            roadFixer.FixRoadAtPosition(_placementSystem, temporaryPosition);
-        }
-    }
 }
 

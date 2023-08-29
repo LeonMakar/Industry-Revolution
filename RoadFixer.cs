@@ -3,7 +3,7 @@ using System.Linq;
 using System.Reflection;
 using UnityEngine;
 
-public class RoadFixer : MonoBehaviour
+public class RoadFixerOLd : MonoBehaviour
 {
     public GameObject deadEnd, roadStright, corner, threeWay, fourWay;
 

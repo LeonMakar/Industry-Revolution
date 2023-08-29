@@ -19,6 +19,10 @@ public class RoadBilder : Bilder
                 var roadTreeWay = Resources.Load<GameObject>("Roads/Road3Way");
                 GameObject roadT = GameObject.Instantiate(roadTreeWay);
                 return roadT;
+            case RoadType.FourWay:
+                var roadFourWay = Resources.Load<GameObject>("Roads/Road4Way");
+                GameObject roadF = GameObject.Instantiate(roadFourWay);
+                return roadF;
             case RoadType.Nothing:
                 return null;
             default: return null;

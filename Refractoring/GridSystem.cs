@@ -16,6 +16,8 @@ public class GridSystem
 
     public GridSystem(int width, int hight)
     {
+        Instance = this;
+
         _hight = hight;
         _width = width;
 
@@ -25,7 +27,7 @@ public class GridSystem
         {
             for (int j = 0; j < _nodeDatas.GetLength(1); j++)
             {
-                _nodeDatas[i, j] = new NodeData();
+                _nodeDatas[i, j] = new NodeData(i, j);
             }
         }
     }
@@ -57,7 +59,6 @@ public class GridSystem
     /// <returns></returns>
     public Dictionary<string, NodeData> GetAllNeighborsNearThePointOffSpecificType(int positionX, int positionY, NodeType type)
     {
-        //List<NodeData> neighbors = new List<NodeData>();
         Dictionary<string, NodeData> neighbors = new Dictionary<string, NodeData>();
 
         if (positionX > 0)

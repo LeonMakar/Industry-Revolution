@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
-
+/// <summary>
+/// Реализация паттерна сигнальная шина
+/// </summary>
 public class EventBus : MonoBehaviour
 {
     public static EventBus Instance { get; private set; }
@@ -20,7 +22,11 @@ public class EventBus : MonoBehaviour
         else
             _signalCallbacks.Add(key, new List<object>() { metod });
     }
-
+    /// <summary>
+    /// Вызывает все методы подписанные на данный класс
+    /// </summary>
+    /// <typeparam name="T"> Класс с сигналом </typeparam>
+    /// <param name="signal">Класс с сигналом</param>
     public void Invoke<T>(T signal)
     {
         string key = typeof(T).Name;
