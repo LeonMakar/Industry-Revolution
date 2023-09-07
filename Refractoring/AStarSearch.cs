@@ -12,7 +12,7 @@ public class AStarSearch
     private Dictionary<Vector3Int, float> _nodesWithVectorDistance = new Dictionary<Vector3Int, float>();
     //private int _perfectDistance;
     private bool _errorBreak = false;
-
+       //Изменить
     public List<Vector3Int> GetNodesForPath(Vector3Int startPoint, Vector3Int endPoint)
     {
         _correctNodes.Clear();
