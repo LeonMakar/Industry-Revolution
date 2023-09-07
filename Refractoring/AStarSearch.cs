@@ -1,6 +1,9 @@
+using System;
+using System.Collections;
 using System.Collections.Generic;
 using Unity.VisualScripting;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 public class AStarSearch
 {
@@ -8,6 +11,7 @@ public class AStarSearch
 
     private Dictionary<Vector3Int, float> _nodesWithVectorDistance = new Dictionary<Vector3Int, float>();
     //private int _perfectDistance;
+    private bool _errorBreak = false;
 
     public List<Vector3Int> GetNodesForPath(Vector3Int startPoint, Vector3Int endPoint)
     {
@@ -17,23 +21,49 @@ public class AStarSearch
         //_perfectDistance = distance;
         Vector3Int currentPoint = startPoint;
         _nodesWithVectorDistance.Clear();
-        BilderSystem.Instance.DestroyTemporaryRoads();
-        while (currentPoint != endPoint)
+
+
+        //while (currentPoint != endPoint)
+        for (int i = 0; i < 30; i++)
+  
         {
-            Debug.Log("Цикл начат");
+            Debug.Log("1");
             if (currentPoint != endPoint)
             {
-                foreach (var node in GetNodeNeighborsOfType(currentPoint))
+                Debug.Log("2");
+
+                if (GetNodeNeighborsOfType(currentPoint).Count > 0)
                 {
-                    if (!_nodesWithVectorDistance.ContainsKey(node.GetNodePosition))
-                        _nodesWithVectorDistance.Add(node.GetNodePosition, GetVectorDistance(node.GetNodePosition, endPoint));                  
+                    Debug.Log("3");
+                    foreach (var node in GetNodeNeighborsOfType(currentPoint))
+                    {
+                        if (!_nodesWithVectorDistance.ContainsKey(node.GetNodePosition))
+                            _nodesWithVectorDistance.Add(node.GetNodePosition, GetVectorDistance(node.GetNodePosition, endPoint));
+                    }
+                }
+                else
+                {
+                    Debug.Log("Нет пригодных соседей");
+                    break;
                 }
 
-                currentPoint = FindClosestNode(_nodesWithVectorDistance);
+                if (FindClosestNode(_nodesWithVectorDistance) != null)
+                {
+                    Debug.Log("4");
+                    currentPoint = FindClosestNode(_nodesWithVectorDistance);
+                }
+                else
+                {
+                    Debug.Log("Нет пригодной Ноды");
+                    break;
+                }
             }
             _correctNodes.Add(currentPoint);
             if (currentPoint == endPoint)
+            {
+                Debug.Log("5");
                 break;
+            }
         }
         return _correctNodes;
     }

@@ -8,7 +8,7 @@ public class MouseIsClickedSignal
     {
         try
         {
-            position = vector3Int.Value;
+            position = new Vector3Int(vector3Int.Value.x,0,vector3Int.Value.z);
         }
         catch (System.Exception)
         {

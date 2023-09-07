@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
 
@@ -12,19 +13,17 @@ public partial class BilderSystem : MonoBehaviour
     public FirstCity _firstCity = new FirstCity(5);
     public SecondCity SecondCity = new SecondCity(6);
     public GridSystem _grid;
+    public Dictionary<Vector3Int, GameObject> TemporaryRoads = new Dictionary<Vector3Int, GameObject>();
+    public Dictionary<Vector3Int, GameObject> AllRoads = new Dictionary<Vector3Int, GameObject>();
 
     private Bilder _bilder;
     private RoadFixer _roadFixer;
 
-    private Dictionary<Vector3Int, GameObject> _allRoads = new Dictionary<Vector3Int, GameObject>();
-    private Dictionary<Vector3Int, GameObject> _temporaryRoads = new Dictionary<Vector3Int, GameObject>();
     private List<Vector3Int> _roadsToRecheck = new List<Vector3Int>();
 
-    private Vector3Int _firstRoad;
+    private Dictionary<Vector3Int, GameObject> _firstRoad = new Dictionary<Vector3Int, GameObject>();
 
-    public Dictionary<Vector3Int, GameObject> AllRoads => _allRoads;
     public List<Vector3Int> RoadsToRecheck => _roadsToRecheck;
-    public Dictionary<Vector3Int, GameObject> TemporaryRoads => _temporaryRoads;
 
 
     private void Start()
@@ -62,9 +61,14 @@ public partial class BilderSystem : MonoBehaviour
         _cursor.transform.position = signal.positionVector3int;
     }
 
-    public void DestroyRoad(int positionX, int positionZ)
+    public void DestroyRoadFromTemporaryRoads(int positionX, int positionZ)
     {
-        Destroy(_allRoads[(new Vector3Int(positionX, 0, positionZ))].gameObject);
+        Destroy(TemporaryRoads[(new Vector3Int(positionX, 0, positionZ))].gameObject);
+
+    }
+    public void DestroyRoadFromAllRoads(int positionX, int positionZ)
+    {
+        Destroy(AllRoads[(new Vector3Int(positionX, 0, positionZ))].gameObject);
     }
 
     private void BildRoadWhenClick(MouseIsClickedSignal signal)
@@ -78,48 +82,35 @@ public partial class BilderSystem : MonoBehaviour
                 road.transform.position = signal.position;
                 _grid[signal.position.x, signal.position.z].MakeNodeSetup(NodeType.Road);
 
-                _allRoads.Add(signal.position, road);
-                _roadFixer.FixRoad(signal.position.x, signal.position.z);
+                if (TemporaryRoads.ContainsKey(new Vector3Int(signal.position.x, 0, signal.position.z)) == false)
+                {
+                    TemporaryRoads.Add(signal.position, road);
+                }
 
-                foreach (var item in _roadFixer.RoadNeighbors)
-                    _roadsToRecheck.Add(item.Value.GetNodePosition);
-
-                _roadFixer.FixNeighborsRoad();
-                _firstRoad = signal.position;
+                _roadsToRecheck.Add(signal.position);
+                _firstRoad.Add(signal.position, road);
             }
         }
         else
             Debug.Log("Vector3Int is null");
     }
-
-    private void DestroyFirstRoad(Vector3Int position)
-    {
-        if (_allRoads.ContainsKey(position))
-        {
-
-            _grid[position.x, position.z].MakeNodeSetup(NodeType.Empty);
-            Destroy(_allRoads[position].gameObject);
-            _allRoads.Remove(position);
-        }
-
-    }
     private void BildRoadWhenHold(MouseIsHoldSignal signal)
     {
+        DestroyTemporaryRoads();
+        foreach (var item in _firstRoad)
+        {
+            if (!TemporaryRoads.ContainsKey(item.Key))
+                TemporaryRoads.Add(item.Key, item.Value);
+        }
+
         _roadsToRecheck.Clear();
-        DestroyFirstRoad(_firstRoad);
         if (signal.NodePositions != null)
         {
-            List<Vector3Int> roadPositions = new List<Vector3Int>();
-            roadPositions.Add(_firstRoad);
-            foreach (var position in signal.NodePositions)
-                roadPositions.Add(position);
-
-
-            foreach (var nodePosition in roadPositions)
+            foreach (var nodePosition in signal.NodePositions)
             {
                 if (CheckThatIsNodeFree(nodePosition.x, nodePosition.y))
                 {
-                    if (!_allRoads.ContainsKey(nodePosition))
+                    if (!AllRoads.ContainsKey(nodePosition))
                     {
                         _bilder = new RoadBilder();
                         GameObject road = _bilder.Bild(RoadType.Stright);
@@ -127,41 +118,51 @@ public partial class BilderSystem : MonoBehaviour
                         Debug.Log(nodePosition);
                         _grid[nodePosition.x, nodePosition.z].MakeNodeSetup(NodeType.Road);
 
-                        if (!_temporaryRoads.ContainsKey(nodePosition))
+                        if (!TemporaryRoads.ContainsKey(nodePosition))
                         {
-                            _temporaryRoads.Add(nodePosition, road);
+                            TemporaryRoads.Add(nodePosition, road);
                         }
-                        _roadFixer.FixRoadTemporary(nodePosition.x, nodePosition.z);
+                        _roadFixer.FixRoad(nodePosition.x, nodePosition.z);
                         _roadsToRecheck.Add(nodePosition);
                     }
                 }
             }
-            _roadFixer.FixNeighborsRoadForTemporary();
         }
-        else
-            Debug.Log("Vector3Int is null");
     }
 
     public void DestroyTemporaryRoads()
     {
-        foreach (var road in _temporaryRoads)
+        foreach (var road in TemporaryRoads)
         {
             Destroy(road.Value.gameObject);
             _grid[road.Key.x, road.Key.z].MakeNodeSetup(NodeType.Empty);
         }
-        _temporaryRoads.Clear();
+        TemporaryRoads.Clear();
     }
 
     public void SetAllTemporaryRoads(MouseIsUpSignal signal)
     {
-
-        _roadFixer.FixNeighborsRoad();
-        foreach (var road in _temporaryRoads)
+        Dictionary<Vector3Int, GameObject> TemporaryRoadsSnapShot = new Dictionary<Vector3Int, GameObject>(TemporaryRoads);
+        foreach (var road in TemporaryRoadsSnapShot)
         {
             _grid[road.Key.x, road.Key.z].MakeNodeSetup(NodeType.Road);
-            _allRoads.Add(road.Key, road.Value);
+            _roadFixer.FixRoad(road.Key.x, road.Key.z);
+
+            foreach (var item in _roadFixer.RoadNeighbors)
+                _roadsToRecheck.Add(item.Value.GetNodePosition);
+
+            _roadFixer.FixNeighborsRoad();
         }
-        _temporaryRoads.Clear();
+        foreach (var road in TemporaryRoads)
+        {
+            _grid[road.Key.x, road.Key.z].MakeNodeSetup(NodeType.Road);
+            if (AllRoads.ContainsKey(road.Key) == false)
+            {
+                AllRoads.Add(road.Key, road.Value);
+            }
+
+        }
+        TemporaryRoads.Clear();
     }
 
 
