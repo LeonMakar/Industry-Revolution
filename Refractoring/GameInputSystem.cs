@@ -1,11 +1,16 @@
 ﻿using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.UIElements;
+using UnityEngine.WSA;
 
 public class GameInputSystem : MonoBehaviour
 {
     [SerializeField] private Camera _cameraMain;
     [SerializeField] private LayerMask _layerMask;
+    [SerializeField] private GameObject _cursor;
+
+    private GameObject _objectUnderCursor;
 
     private AStarSearch _aStarSearch;
     private Vector3Int? _lastPosition = new Vector3Int(0, 1000, 0);
@@ -18,6 +23,11 @@ public class GameInputSystem : MonoBehaviour
     private void Start()
     {
         _aStarSearch = new AStarSearch();
+        EventBus.Instance.Subscrube<MousePositionSignal>(CursorPosition);
+    }
+    private void OnDisable()
+    {
+        EventBus.Instance.Unsubscribe<MousePositionSignal>(CursorPosition);
     }
     private void Update()
     {
@@ -25,6 +35,7 @@ public class GameInputSystem : MonoBehaviour
         CheckMousePositionOnGround();
         CheckMouseIsHold();
         CheckMouseButtonIsUp();
+        ResetObjectUnderCursor();
     }
     private Vector3Int? RaycastGround()
     {
@@ -38,8 +49,32 @@ public class GameInputSystem : MonoBehaviour
         }
         return null;
     }
+    private void CursorPosition(MousePositionSignal signal)
+    {
+        _cursor.transform.position = signal.positionVector3int;
+        if (_objectUnderCursor != null)
+            _objectUnderCursor.transform.position = signal.positionVector3int;
+    }
+    public void SetObjectUnderCursor(GameObject gameObject)
+    {
+        if (_objectUnderCursor != null)
+            Destroy(_objectUnderCursor.gameObject);
+        _objectUnderCursor = Instantiate(gameObject, new Vector3(_cursor.transform.position.x, 0.02f, _cursor.transform.position.z), Quaternion.identity);
+        ObjectDataForBilding selectedObject;
+        _objectUnderCursor.TryGetComponent<ObjectDataForBilding>(out selectedObject);
+        _cursor.SetActive(false);
+        EventBus.Instance.Invoke<SelectedObjectSignal>(new SelectedObjectSignal(selectedObject.SelectedObjectForBilding));
+    }
 
-
+    public void ResetObjectUnderCursor()
+    {
+        if (Input.GetKeyDown(KeyCode.Escape))
+        {
+            Destroy(_objectUnderCursor.gameObject);
+            _objectUnderCursor = null;
+            _cursor.SetActive(true);
+        }
+    }
     private void CheckMouseIsClicked()
     {
         if (Input.GetMouseButtonDown(0) && !EventSystem.current.IsPointerOverGameObject())

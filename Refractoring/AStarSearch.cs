@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Net;
 using Unity.VisualScripting;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -10,120 +11,160 @@ public class AStarSearch
     private List<Vector3Int> _correctNodes = new List<Vector3Int>();
 
     private Dictionary<Vector3Int, float> _nodesWithVectorDistance = new Dictionary<Vector3Int, float>();
-    //private int _perfectDistance;
-    private bool _errorBreak = false;
-       //Изменить
+    string idealDirection = "";
     public List<Vector3Int> GetNodesForPath(Vector3Int startPoint, Vector3Int endPoint)
     {
         _correctNodes.Clear();
         _correctNodes.Add(startPoint);
-        int distance = GetManhattanDistance(startPoint, endPoint);
-        //_perfectDistance = distance;
         Vector3Int currentPoint = startPoint;
-        _nodesWithVectorDistance.Clear();
 
-
-        //while (currentPoint != endPoint)
-        for (int i = 0; i < 30; i++)
-  
+        foreach (var item in CalculateClosestNeighbor(startPoint, endPoint))
         {
-            Debug.Log("1");
+            currentPoint = item.Key;
+            idealDirection = item.Value;
+            _correctNodes.Add(currentPoint);
+        }
+        for (int i = 0; i < 15; i++)
+        {
             if (currentPoint != endPoint)
             {
-                Debug.Log("2");
 
-                if (GetNodeNeighborsOfType(currentPoint).Count > 0)
+                if (idealDirection == Enum.GetName(typeof(Direction), Direction.Up))
                 {
-                    Debug.Log("3");
-                    foreach (var node in GetNodeNeighborsOfType(currentPoint))
+                    if (currentPoint.z != endPoint.z)
                     {
-                        if (!_nodesWithVectorDistance.ContainsKey(node.GetNodePosition))
-                            _nodesWithVectorDistance.Add(node.GetNodePosition, GetVectorDistance(node.GetNodePosition, endPoint));
+                        Vector3Int temporaryPosition = new Vector3Int(currentPoint.x, 0, currentPoint.z + 1);
+                        AddNodeWithCorrectAlgaritmDirectionOnZAxes(ref currentPoint, endPoint, temporaryPosition);
+                        if (currentPoint == endPoint)
+                            break;
                     }
+                    else
+                        SetNewDirection(ref currentPoint, endPoint);
                 }
-                else
+                else if (idealDirection == Enum.GetName(typeof(Direction), Direction.Down))
                 {
-                    Debug.Log("Нет пригодных соседей");
-                    break;
+                    if (currentPoint.z != endPoint.z)
+                    {
+                        Vector3Int temporaryPosition = new Vector3Int(currentPoint.x, 0, currentPoint.z - 1);
+                        AddNodeWithCorrectAlgaritmDirectionOnZAxes(ref currentPoint, endPoint, temporaryPosition);
+                        if (currentPoint == endPoint)
+                            break;
+                    }
+                    else
+                        SetNewDirection(ref currentPoint, endPoint);
                 }
-
-                if (FindClosestNode(_nodesWithVectorDistance) != null)
+                else if (idealDirection == Enum.GetName(typeof(Direction), Direction.Right))
                 {
-                    Debug.Log("4");
-                    currentPoint = FindClosestNode(_nodesWithVectorDistance);
+                    if (currentPoint.x != endPoint.x)
+                    {
+                        Vector3Int temporaryPosition = new Vector3Int(currentPoint.x + 1, 0, currentPoint.z);
+                        AddNodeWithCorrectAlgaritmDirectionOnXAxes(ref currentPoint, endPoint, temporaryPosition);
+                        if (currentPoint == endPoint)
+                            break;
+                    }
+                    else
+                        SetNewDirection(ref currentPoint, endPoint);
                 }
-                else
+                else if (idealDirection == Enum.GetName(typeof(Direction), Direction.Left))
                 {
-                    Debug.Log("Нет пригодной Ноды");
-                    break;
+                    if (currentPoint.x != endPoint.x)
+                    {
+                        Vector3Int temporaryPosition = new Vector3Int(currentPoint.x - 1, 0, currentPoint.z);
+                        AddNodeWithCorrectAlgaritmDirectionOnXAxes(ref currentPoint, endPoint, temporaryPosition);
+                        if (currentPoint == endPoint)
+                            break;
+                    }
+                    else
+                        SetNewDirection(ref currentPoint, endPoint);
                 }
             }
-            _correctNodes.Add(currentPoint);
-            if (currentPoint == endPoint)
-            {
-                Debug.Log("5");
-                break;
-            }
+            else
+                return _correctNodes;
         }
         return _correctNodes;
     }
-
-    private Vector3Int FindClosestNode(Dictionary<Vector3Int, float> nodesWithVector)
+    public enum Direction
     {
-        Dictionary<Vector3Int, float> vectorValues = new Dictionary<Vector3Int, float>();
-        float dictionaryValue = new float();
-        Vector3Int dictionaryKey = new Vector3Int();
-        foreach (var node in nodesWithVector)
+        Up = 0,
+        Down = 1,
+        Left = 2,
+        Right = 3,
+    }
+    private void AddNodeWithCorrectAlgaritmDirectionOnZAxes(ref Vector3Int currentPoint, Vector3Int endPoint, Vector3Int temporaryPosition)
+    {
+        if (currentPoint == endPoint)
+            return;
+        if (GridSystem.Instance[temporaryPosition.x, temporaryPosition.z].TypeOfNode == NodeType.Road
+                            || GridSystem.Instance[temporaryPosition.x, temporaryPosition.z].TypeOfNode == NodeType.Empty)
         {
-            if (vectorValues.Count == 0)
-            {
-                vectorValues.Add(node.Key, node.Value);
-            }
-            else if (vectorValues.Count != 0)
-            {
-                if (node.Value < dictionaryValue)
-                {
-                    vectorValues.Remove(dictionaryKey);
-                    vectorValues.Add(node.Key, node.Value);
-                }
-            }
-            dictionaryKey = node.Key;
-            dictionaryValue = node.Value;
+            currentPoint = temporaryPosition;
+            _correctNodes.Add(currentPoint);
+
+            if (currentPoint.z == endPoint.z && currentPoint != endPoint)
+                SetNewDirection(ref currentPoint, endPoint);
         }
-        foreach (var item in vectorValues)
+        else
+            SetNewDirection(ref currentPoint, endPoint);
+    }
+    private void AddNodeWithCorrectAlgaritmDirectionOnXAxes(ref Vector3Int currentPoint, Vector3Int endPoint, Vector3Int temporaryPosition)
+    {
+        if ((GridSystem.Instance[temporaryPosition.x, temporaryPosition.z].TypeOfNode == NodeType.Road
+                            || GridSystem.Instance[temporaryPosition.x, temporaryPosition.z].TypeOfNode == NodeType.Empty))
         {
-            dictionaryKey = item.Key;
+            currentPoint = temporaryPosition;
+            _correctNodes.Add(currentPoint);
+            if (currentPoint.x == endPoint.x && currentPoint != endPoint)
+                SetNewDirection(ref currentPoint, endPoint);
         }
-        return dictionaryKey;
+        else
+            SetNewDirection(ref currentPoint, endPoint);
+    }
+    private void SetNewDirection(ref Vector3Int currentPoint, Vector3Int endPoint)
+    {
+        Dictionary<Vector3Int, string> closestPoint = CalculateClosestNeighbor(currentPoint, endPoint);
+        foreach (var item in closestPoint)
+        {
+            currentPoint = item.Key;
+            idealDirection = item.Value;
+            _correctNodes.Add(currentPoint);
+        }
+    }
+    private Dictionary<Vector3Int, string> CalculateClosestNeighbor(Vector3Int currentPosition, Vector3Int endPosition)
+    {
+        Dictionary<string, NodeData> positionsWithRoadSelector = GridSystem.Instance.GetAllNeighborsNearThePointOffSpecificType(currentPosition.x, currentPosition.z, NodeType.Road);
+        Dictionary<string, NodeData> positionsWithEmptySelector = GridSystem.Instance.GetAllNeighborsNearThePointOffSpecificType(currentPosition.x, currentPosition.z, NodeType.Empty);
+        Dictionary<Vector3Int, string> position = new Dictionary<Vector3Int, string>();
+
+        foreach (var item in positionsWithEmptySelector)
+        {
+            position.Add(item.Value.GetNodePosition, item.Key);
+        }
+        foreach (var item in positionsWithRoadSelector)
+        {
+            position.Add(item.Value.GetNodePosition, item.Key);
+        }
+
+        double smolestVector = Double.MaxValue;
+        double vectorCalculation;
+        Dictionary<Vector3Int, string> closestNode = new Dictionary<Vector3Int, string>();
+
+        foreach (var item in position)
+        {
+            vectorCalculation = Math.Sqrt(Math.Pow(Math.Abs(endPosition.x - item.Key.x), 2) + Math.Pow(Math.Abs(endPosition.z - item.Key.z), 2));
+            if (vectorCalculation <= smolestVector)
+            {
+                smolestVector = vectorCalculation;
+                closestNode.Clear();
+                closestNode.Add(item.Key, item.Value);
+            }
+        }
+        return closestNode;
     }
 
     private int GetManhattanDistance(Vector3Int startPoint, Vector3Int endPoint)
     {
         int manhattanDistance = Mathf.Abs(startPoint.x - endPoint.x) + Mathf.Abs(startPoint.z - endPoint.z);
         return manhattanDistance;
-    }
-
-    private float GetVectorDistance(Vector3Int startPoint, Vector3Int endPoint)
-    {
-        float vectorDistance = Mathf.Sqrt(Mathf.Pow(endPoint.x - startPoint.x, 2) + Mathf.Pow(endPoint.z - startPoint.z, 2));
-        return vectorDistance;
-    }
-
-
-    private List<NodeData> GetNodeNeighborsOfType(Vector3Int position)
-    {
-        List<NodeData> nodes = new List<NodeData>();
-        foreach (var item in GridSystem.Instance.GetAllNeighborsNearThePointOffSpecificType
-            (position.x, position.z, NodeType.Empty))
-        {
-            nodes.Add(item.Value);
-        }
-        foreach (var item in GridSystem.Instance.GetAllNeighborsNearThePointOffSpecificType
-           (position.x, position.z, NodeType.Road))
-        {
-            nodes.Add(item.Value);
-        }
-        return nodes;
     }
 }
 

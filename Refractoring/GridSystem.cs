@@ -51,6 +51,7 @@ public class GridSystem
         return neighbors;
     }
 
+
     ///<summary>
     ///Returns Left,Right,Up and Down nodes wich is prefer type
     ///</summary>
