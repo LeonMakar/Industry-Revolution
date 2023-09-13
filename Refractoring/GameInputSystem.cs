@@ -35,7 +35,8 @@ public class GameInputSystem : MonoBehaviour
             Vector3Int position = Vector3Int.FloorToInt(hit.point);
             Vector3Int positionToReturn = new Vector3Int(position.x, 0, position.z);
             return positionToReturn;
-        }
+        }   
+
         return null;
     }
 
