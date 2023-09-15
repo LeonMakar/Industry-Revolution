@@ -14,53 +14,53 @@ public class RoadFixer
         //Left, Up , Right and Down is Road
         if (_roadNeighbors.ContainsKey("Left") && _roadNeighbors.ContainsKey("Up") && _roadNeighbors.ContainsKey("Right") && _roadNeighbors.ContainsKey("Down"))
         {
-            SetRoadRotation(positionX, positionZ, RoadType.FourWay, 0);
+            SetRoadRotation(positionX, positionZ, BildingType.FourWayRoad, 0);
         }
 
         //Down, Left, Up is Road and  Right something else
         else if (_roadNeighbors.ContainsKey("Down") && _roadNeighbors.ContainsKey("Left") && _roadNeighbors.ContainsKey("Up"))
         {
-            SetRoadRotation(positionX, positionZ, RoadType.TreeWay, 180);
+            SetRoadRotation(positionX, positionZ, BildingType.TreeWayRoad, 180);
         }
         //Left, Up and Right is Road and  Down something else
         else if (_roadNeighbors.ContainsKey("Left") && _roadNeighbors.ContainsKey("Up") && _roadNeighbors.ContainsKey("Right"))
         {
-            SetRoadRotation(positionX, positionZ, RoadType.TreeWay, 270);
+            SetRoadRotation(positionX, positionZ, BildingType.TreeWayRoad, 270);
         }
         //Up, Right and Down  is Road and  Left something else
         else if (_roadNeighbors.ContainsKey("Up") && _roadNeighbors.ContainsKey("Right") && _roadNeighbors.ContainsKey("Down"))
         {
-            SetRoadRotation(positionX, positionZ, RoadType.TreeWay, 0);
+            SetRoadRotation(positionX, positionZ, BildingType.TreeWayRoad, 0);
         }
         //Right, Down and Left is Road and Up something else
         else if (_roadNeighbors.ContainsKey("Right") && _roadNeighbors.ContainsKey("Down") && _roadNeighbors.ContainsKey("Left"))
         {
-            SetRoadRotation(positionX, positionZ, RoadType.TreeWay, 90);
+            SetRoadRotation(positionX, positionZ, BildingType.TreeWayRoad, 90);
         }
 
         //Left and Up is Road, Right and Down something else
         else if (_roadNeighbors.ContainsKey("Left") && _roadNeighbors.ContainsKey("Up"))
         {
-            SetRoadRotation(positionX, positionZ, RoadType.Curve, 0);
+            SetRoadRotation(positionX, positionZ, BildingType.CurveRoad, 0);
 
         }
 
         //Up and Right is Road, Left and Down something else
         else if (_roadNeighbors.ContainsKey("Up") && _roadNeighbors.ContainsKey("Right"))
         {
-            SetRoadRotation(positionX, positionZ, RoadType.Curve, 90);
+            SetRoadRotation(positionX, positionZ, BildingType.CurveRoad, 90);
         }
 
         //Right and Down is Road, Left and Up something else
         else if (_roadNeighbors.ContainsKey("Right") && _roadNeighbors.ContainsKey("Down"))
         {
-            SetRoadRotation(positionX, positionZ, RoadType.Curve, 180);
+            SetRoadRotation(positionX, positionZ, BildingType.CurveRoad, 180);
         }
 
         //Down and Left is Road, Right and Up something else
         else if (_roadNeighbors.ContainsKey("Down") && _roadNeighbors.ContainsKey("Left"))
         {
-            SetRoadRotation(positionX, positionZ, RoadType.Curve, 270);
+            SetRoadRotation(positionX, positionZ, BildingType.CurveRoad, 270);
         }
 
         //Left and Right is Road, Up and Down something else
@@ -88,9 +88,9 @@ public class RoadFixer
         }
         BilderSystem.Instance.RoadsToRecheck.Clear();
     }
-    private void SetRoadRotation(int positionX, int positionZ, RoadType roadType, int nodeRotation)
+    private void SetRoadRotation(int positionX, int positionZ, BildingType roadType, int nodeRotation)
     {
-        if (roadType != RoadType.Nothing)
+        if (roadType != BildingType.NothingRoad)
         {
             var road = _bilder.Bild(roadType);
             road.transform.position = new Vector3Int(positionX, 0, positionZ);

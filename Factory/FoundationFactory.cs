@@ -44,7 +44,7 @@ public class FoundationFactory : FoundationCreator
 
     public int testNumber = 4;
 }
-public enum StructureType
+public enum StructureTypeFoundation
 {
     City = 0,
     Bilding = 1,

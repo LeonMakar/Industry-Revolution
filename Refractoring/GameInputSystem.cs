@@ -64,7 +64,7 @@ public class GameInputSystem : MonoBehaviour
         ObjectDataForBilding selectedObject;
         _objectUnderCursor.TryGetComponent<ObjectDataForBilding>(out selectedObject);
         _cursor.SetActive(false);
-        EventBus.Instance.Invoke<SelectedObjectSignal>(new SelectedObjectSignal(selectedObject.SelectedObjectForBilding));
+        EventBus.Instance.Invoke<SelectedObjectSignal>(new SelectedObjectSignal(selectedObject));
     }
 
     public void ResetObjectUnderCursor()
@@ -83,7 +83,7 @@ public class GameInputSystem : MonoBehaviour
             var position = RaycastGround();
             if (position != null)
             {
-                EventBus.Instance.Invoke<MouseIsClickedSignal>(new MouseIsClickedSignal(position));
+                EventBus.Instance.Invoke<MouseIsClickedSignal>(new MouseIsClickedSignal(position.Value));
                 _startPointForRoad = position.Value;
             }
         }

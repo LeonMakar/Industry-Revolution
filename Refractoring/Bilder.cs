@@ -2,7 +2,7 @@
 
 public abstract class Bilder
 {
-    public abstract GameObject Bild(RoadType roadType);
+    public abstract GameObject Bild(BildingType bildingType);
 
 }
 

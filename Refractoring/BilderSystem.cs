@@ -14,7 +14,7 @@ public partial class BilderSystem : MonoBehaviour
     public Dictionary<Vector3Int, GameObject> TemporaryRoads = new Dictionary<Vector3Int, GameObject>();
     public Dictionary<Vector3Int, GameObject> AllRoads = new Dictionary<Vector3Int, GameObject>();
 
-    private SelectedObjectForBilding _selectedObjectForBilding;
+    private ObjectDataForBilding _selectedObjectData;
 
     private Bilder _bilder;
     private RoadFixer _roadFixer;
@@ -30,6 +30,7 @@ public partial class BilderSystem : MonoBehaviour
     {
         Instance = this;
         EventBus.Instance.Subscrube<MouseIsClickedSignal>(BildRoadWhenClick);
+        EventBus.Instance.Subscrube<MouseIsClickedSignal>(BildBildingWhenClick);
         EventBus.Instance.Subscrube<MouseIsHoldSignal>(BildRoadWhenHold);
         EventBus.Instance.Subscrube<MouseIsUpSignal>(SetAllTemporaryRoads);
         EventBus.Instance.Subscrube<SelectedObjectSignal>(SetSelectedObject);
@@ -41,6 +42,7 @@ public partial class BilderSystem : MonoBehaviour
     private void OnDisable()
     {
         EventBus.Instance.Unsubscribe<MouseIsClickedSignal>(BildRoadWhenClick);
+        EventBus.Instance.Subscrube<MouseIsClickedSignal>(BildBildingWhenClick);
         EventBus.Instance.Unsubscribe<MouseIsHoldSignal>(BildRoadWhenHold);
         EventBus.Instance.Unsubscribe<MouseIsUpSignal>(SetAllTemporaryRoads);
         EventBus.Instance.Unsubscribe<SelectedObjectSignal>(SetSelectedObject);
@@ -56,23 +58,80 @@ public partial class BilderSystem : MonoBehaviour
 
 
     private void SetSelectedObject(SelectedObjectSignal signal)
-        => _selectedObjectForBilding = signal.SelectedObject;
+        => _selectedObjectData = signal.ObjectData;
 
     public void DestroyRoadFromTemporaryRoads(int positionX, int positionZ)
         => Destroy(TemporaryRoads[(new Vector3Int(positionX, 0, positionZ))].gameObject);
+
     public void DestroyRoadFromAllRoads(int positionX, int positionZ)
         => Destroy(AllRoads[(new Vector3Int(positionX, 0, positionZ))].gameObject);
 
+    private void BildBildingWhenClick(MouseIsClickedSignal signal)
+    {
+        bool canBild = false;
+        if (_selectedObjectData.SelectedObjectStructureType == StructureType.Bilding && _selectedObjectData != null)
+        {
+            for (int i = 0; i < _selectedObjectData.BildingSize.x; i++)
+            {
+                for (int j = 0; j < _selectedObjectData.BildingSize.y; j++)
+                {
+                    if (signal.position != null)
+                    {
+                        if (CheckThatIsNodeFree(signal.position.x + i, signal.position.z + j))
+                            canBild = true;
+                        else
+                        {
+                            canBild = false;
+                            Debug.Log("Node is not Empty");
+                            return;
+                        }
+                    }
+                    else
+                    {
+                        Debug.Log("signal is null");
+                        return;
+                    }
+                }
+            }
+
+            if (canBild)
+            {
+                _bilder = new BildingBilder();
+                if (_selectedObjectData.PathToPrefab != null)
+                {
+                    BildingBilder bilder = _bilder as BildingBilder;
+                    bilder.PathForBildingPrefab = _selectedObjectData.PathToPrefab;
+                    GameObject bilding = bilder.Bild(BildingType.Bilding);
+                    bilding.transform.position = signal.position;
+
+
+                    for (int i = 0; i < _selectedObjectData.BildingSize.x; i++)
+                    {
+                        for (int j = 0; j < _selectedObjectData.BildingSize.y; j++)
+                        {
+                            _grid[signal.position.x + i, signal.position.z + j].MakeNodeSetup(NodeType.Bilding);
+                        }
+                    }
+                }
+                else
+                    Debug.Log("Path to Prefab is null");
+            }
+            else
+            {
+                Debug.Log("Construction is impossible");
+            }
+        }
+    }
     private void BildRoadWhenClick(MouseIsClickedSignal signal)
     {
-        if (_selectedObjectForBilding == SelectedObjectForBilding.Road)
+        if (_selectedObjectData.SelectedObjectStructureType == StructureType.Road && _selectedObjectData != null)
         {
             if (signal.position != null)
             {
                 if (CheckThatIsNodeFree(signal.position.x, signal.position.z))
                 {
                     _bilder = new RoadBilder();
-                    GameObject road = _bilder.Bild(RoadType.Stright);
+                    GameObject road = _bilder.Bild(BildingType.StrightRoad);
                     road.transform.position = signal.position;
                     _grid[signal.position.x, signal.position.z].MakeNodeSetup(NodeType.Road);
 
@@ -91,7 +150,7 @@ public partial class BilderSystem : MonoBehaviour
     }
     private void BildRoadWhenHold(MouseIsHoldSignal signal)
     {
-        if (_selectedObjectForBilding == SelectedObjectForBilding.Road)
+        if (_selectedObjectData.SelectedObjectStructureType == StructureType.Road)
         {
             DestroyTemporaryRoads();
             _roadsToRecheck.Clear();
@@ -102,7 +161,7 @@ public partial class BilderSystem : MonoBehaviour
                     if (!AllRoads.ContainsKey(nodePosition))
                     {
                         _bilder = new RoadBilder();
-                        GameObject road = _bilder.Bild(RoadType.Stright);
+                        GameObject road = _bilder.Bild(BildingType.StrightRoad);
                         road.transform.position = nodePosition;
                         _grid[nodePosition.x, nodePosition.z].MakeNodeSetup(NodeType.Road);
 
@@ -130,30 +189,32 @@ public partial class BilderSystem : MonoBehaviour
 
     private void SetAllTemporaryRoads(MouseIsUpSignal signal)
     {
-        Dictionary<Vector3Int, GameObject> TemporaryRoadsSnapShot = new Dictionary<Vector3Int, GameObject>(TemporaryRoads);
-        foreach (var road in TemporaryRoadsSnapShot)
+        if (TemporaryRoads.Count > 0)
         {
-            _grid[road.Key.x, road.Key.z].MakeNodeSetup(NodeType.Road);
-            _roadFixer.FixRoad(road.Key.x, road.Key.z);
-
-            foreach (var item in _roadFixer.RoadNeighbors)
-                _roadsToRecheck.Add(item.Value.GetNodePosition);
-
-            _roadFixer.FixNeighborsRoad();
-        }
-        foreach (var road in TemporaryRoads)
-        {
-            _grid[road.Key.x, road.Key.z].MakeNodeSetup(NodeType.Road);
-            if (AllRoads.ContainsKey(road.Key) == false)
+            Dictionary<Vector3Int, GameObject> TemporaryRoadsSnapShot = new Dictionary<Vector3Int, GameObject>(TemporaryRoads);
+            foreach (var road in TemporaryRoadsSnapShot)
             {
-                AllRoads.Add(road.Key, road.Value);
-            }
+                _grid[road.Key.x, road.Key.z].MakeNodeSetup(NodeType.Road);
+                _roadFixer.FixRoad(road.Key.x, road.Key.z);
 
+                foreach (var item in _roadFixer.RoadNeighbors)
+                    _roadsToRecheck.Add(item.Value.GetNodePosition);
+
+                _roadFixer.FixNeighborsRoad();
+            }
+            foreach (var road in TemporaryRoads)
+            {
+                _grid[road.Key.x, road.Key.z].MakeNodeSetup(NodeType.Road);
+                if (AllRoads.ContainsKey(road.Key) == false)
+                {
+                    AllRoads.Add(road.Key, road.Value);
+                }
+            }
+            TemporaryRoads.Clear();
         }
-        TemporaryRoads.Clear();
     }
 }
-public enum SelectedObjectForBilding
+public enum StructureType
 {
     None = 0,
     Road = 1,

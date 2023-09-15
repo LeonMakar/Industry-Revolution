@@ -3,27 +3,27 @@
 public class RoadBilder : Bilder
 {
 
-    public override GameObject Bild(RoadType roadType)
+    public override GameObject Bild(BildingType roadType)
     {
         switch (roadType)
         {
-            case RoadType.Stright:
+            case BildingType.StrightRoad:
                 var roadStright = Resources.Load<GameObject>("Roads/RoadStright");
                 GameObject roadS = GameObject.Instantiate(roadStright);
                 return roadS;
-            case RoadType.Curve:
+            case BildingType.CurveRoad:
                 var roadCurve = Resources.Load<GameObject>("Roads/RoadCurve");
                 GameObject roadC = GameObject.Instantiate(roadCurve);
                 return roadC;
-            case RoadType.TreeWay:
+            case BildingType.TreeWayRoad:
                 var roadTreeWay = Resources.Load<GameObject>("Roads/Road3Way");
                 GameObject roadT = GameObject.Instantiate(roadTreeWay);
                 return roadT;
-            case RoadType.FourWay:
+            case BildingType.FourWayRoad:
                 var roadFourWay = Resources.Load<GameObject>("Roads/Road4Way");
                 GameObject roadF = GameObject.Instantiate(roadFourWay);
                 return roadF;
-            case RoadType.Nothing:
+            case BildingType.NothingRoad:
                 return null;
             default: return null;
         }
@@ -31,13 +31,14 @@ public class RoadBilder : Bilder
 
 }
 
-public enum RoadType
+public enum BildingType
 {
-    Stright = 0,
-    Curve = 1,
-    TreeWay = 2,
-    FourWay = 3,
-    Nothing = 4,
+    StrightRoad = 0,
+    CurveRoad = 1,
+    TreeWayRoad = 2,
+    FourWayRoad = 3,
+    NothingRoad = 4,
+    Bilding = 5,
+    District = 6,
+    City = 7,
 }
-
-

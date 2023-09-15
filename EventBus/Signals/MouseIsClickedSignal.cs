@@ -3,7 +3,7 @@ using UnityEngine;
 
 public class MouseIsClickedSignal
 {
-    public readonly Vector3Int position;
+    public Vector3Int position;
     public MouseIsClickedSignal(Vector3Int? vector3Int)
     {
         try

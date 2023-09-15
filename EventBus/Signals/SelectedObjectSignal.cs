@@ -1,8 +1,9 @@
 ﻿public class SelectedObjectSignal
 {
-    public SelectedObjectForBilding SelectedObject { get; private set; }
-    public SelectedObjectSignal(SelectedObjectForBilding selectedObject)
+    public ObjectDataForBilding ObjectData { get; private set; }
+
+    public SelectedObjectSignal(ObjectDataForBilding objectData)
     {
-        SelectedObject = selectedObject;
+        ObjectData = objectData;
     }
 }

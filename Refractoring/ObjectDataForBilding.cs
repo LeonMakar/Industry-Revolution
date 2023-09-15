@@ -2,15 +2,18 @@ using UnityEngine;
 
 public class ObjectDataForBilding : MonoBehaviour
 {
-    [SerializeField] private SelectedObjectForBilding _selectedObjectForBilding;
+    [SerializeField] private StructureType _selectedObjectStructureType;
 
-    [SerializeField] private Size _bildingSize;
+    [SerializeField,Space(10)] private Size _bildingSize;
+    [SerializeField, Space(10)] private string _pathToResourcesPrefab;
 
     [System.Serializable]
-    struct Size
+    public struct Size
     {
         public int x, y;
     }
 
-    public SelectedObjectForBilding SelectedObjectForBilding => _selectedObjectForBilding;
+    public StructureType SelectedObjectStructureType => _selectedObjectStructureType;
+    public Size BildingSize => _bildingSize;
+    public string PathToPrefab => _pathToResourcesPrefab;
 }
