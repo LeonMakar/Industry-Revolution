@@ -46,7 +46,7 @@ public class GameInputSystem : MonoBehaviour
             Vector3Int position = Vector3Int.FloorToInt(hit.point);
             Vector3Int positionToReturn = new Vector3Int(position.x, 0, position.z);
             return positionToReturn;
-        }   
+        }
 
         return null;
     }
@@ -90,15 +90,23 @@ public class GameInputSystem : MonoBehaviour
     }
     private void CheckMouseIsHold()
     {
-        if (Input.GetMouseButton(0) && !EventSystem.current.IsPointerOverGameObject())
+        if (Input.GetMouseButton(0) && !EventSystem.current.IsPointerOverGameObject() && _objectUnderCursor != null && _objectUnderCursor.GetComponent<ObjectDataForBilding>().SelectedObjectStructureType == StructureType.Road)
         {
             var position = RaycastGround();
             if (position != null && _lastPosition != position)
             {
-                if (position.Value != _startPointForRoad)
+                if (position.Value != _startPointForRoad && (GridSystem.Instance[position.Value.x, position.Value.z].TypeOfNode == NodeType.Road
+                    || GridSystem.Instance[position.Value.x, position.Value.z].TypeOfNode == NodeType.Empty))
                 {
-                    EventBus.Instance.Invoke<MouseIsHoldSignal>(new MouseIsHoldSignal
-                        (_aStarSearch.GetNodesForPath(_startPointForRoad, position.Value)));
+                    try
+                    {
+                        EventBus.Instance.Invoke<MouseIsHoldSignal>(new MouseIsHoldSignal
+                            (_aStarSearch.GetNodesForPath(_startPointForRoad, position.Value)));
+                    }
+                    catch (System.Exception)
+                    {
+                        Debug.Log("The road path too dificult for calculating");
+                    }
                     _lastPosition = position;
                 }
             }

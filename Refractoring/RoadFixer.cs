@@ -120,7 +120,6 @@ public class RoadFixer
             BilderSystem.Instance.TemporaryRoads[new Vector3Int(positionX, 0, positionZ)].GetComponentInChildren<FixTransform>().FixRotation(nodeRotation);
         else
             BilderSystem.Instance.AllRoads[new Vector3Int(positionX, 0, positionZ)].GetComponentInChildren<FixTransform>().FixRotation(nodeRotation);
-       
     }
 
 }
