@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
-public class RoadFixer
+public class RoadFixer: IService
 {
     private Bilder _bilder = new RoadBilder();
     private Dictionary<string, NodeData> _roadNeighbors = new Dictionary<string, NodeData>();
@@ -9,7 +9,7 @@ public class RoadFixer
 
     public void FixRoad(int positionX, int positionZ)
     {
-        _roadNeighbors = BilderSystem.Instance._grid.GetAllNeighborsNearThePointOffSpecificType(positionX, positionZ, NodeType.Road);
+        _roadNeighbors = BilderSystem.Instance.Grid.GetAllNeighborsNearThePointOffSpecificType(positionX, positionZ, NodeType.Road);
 
         //Left, Up , Right and Down is Road
         if (_roadNeighbors.ContainsKey("Left") && _roadNeighbors.ContainsKey("Up") && _roadNeighbors.ContainsKey("Right") && _roadNeighbors.ContainsKey("Down"))

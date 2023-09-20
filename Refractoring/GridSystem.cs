@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEditor.Experimental.GraphView;
 using UnityEngine;
 
-public class GridSystem
+public class GridSystem : IMainService
 {
     public static GridSystem Instance { get; private set; }
 

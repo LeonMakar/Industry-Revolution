@@ -1,57 +1,63 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using Unity.VisualScripting;
+using UnityEditor.Rendering;
+using UnityEditorInternal;
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
 using UnityEngine.UIElements;
 
-public partial class BilderSystem : MonoBehaviour
+public class BilderSystem : MonoBehaviour, IMainService
 {
     public static BilderSystem Instance { get; private set; }
-    public FirstCity _firstCity = new FirstCity(5);
-    public SecondCity SecondCity = new SecondCity(6);
-    public GridSystem _grid;
-    public Dictionary<Vector3Int, GameObject> TemporaryRoads = new Dictionary<Vector3Int, GameObject>();
-    public Dictionary<Vector3Int, GameObject> AllRoads = new Dictionary<Vector3Int, GameObject>();
-
     private ObjectDataForBilding _selectedObjectData;
 
+    public FirstCity _firstCity = new FirstCity(5);
+    public SecondCity SecondCity = new SecondCity(6);
+
+    public Dictionary<Vector3Int, GameObject> TemporaryRoads = new Dictionary<Vector3Int, GameObject>();
+    public Dictionary<Vector3Int, GameObject> AllRoads = new Dictionary<Vector3Int, GameObject>();
+    private Dictionary<Vector3Int, GameObject> _firstRoad = new Dictionary<Vector3Int, GameObject>();
+    private List<Vector3Int> _roadsToRecheck = new List<Vector3Int>();
+
+
+    public GridSystem Grid;
     private Bilder _bilder;
     private RoadFixer _roadFixer;
+    private EventBus _eventBus;
 
-    private List<Vector3Int> _roadsToRecheck = new List<Vector3Int>();
-    private Dictionary<Vector3Int, GameObject> _firstRoad = new Dictionary<Vector3Int, GameObject>();
 
     public List<Vector3Int> RoadsToRecheck => _roadsToRecheck;
 
-
-
-    private void Start()
+    public void Inject<T, Y>(T gridSystem, Y roadFixer, T eventBus) where T : IMainService where Y : IService
     {
-        Instance = this;
-        EventBus.Instance.Subscrube<MouseIsClickedSignal>(BildRoadWhenClick);
-        EventBus.Instance.Subscrube<MouseIsClickedSignal>(BildBildingWhenClick);
-        EventBus.Instance.Subscrube<MouseIsHoldSignal>(BildRoadWhenHold);
-        EventBus.Instance.Subscrube<MouseIsUpSignal>(SetAllTemporaryRoads);
-        EventBus.Instance.Subscrube<SelectedObjectSignal>(SetSelectedObject);
+        Grid = gridSystem as GridSystem;
+        _roadFixer = roadFixer as RoadFixer;
+        _eventBus = eventBus as EventBus;
 
-        _grid = new GridSystem(10, 10);
-        _roadFixer = new RoadFixer();
+        Instance = this;
+        _eventBus.Subscrube<MouseIsClickedSignal>(BildRoadWhenClick);
+        _eventBus.Subscrube<MouseIsClickedSignal>(BildBildingWhenClick);
+        _eventBus.Subscrube<MouseIsHoldSignal>(BildRoadWhenHold);
+        _eventBus.Subscrube<MouseIsUpSignal>(SetAllTemporaryRoads);
+        _eventBus.Subscrube<SelectedObjectSignal>(SetSelectedObject);
     }
 
     private void OnDisable()
     {
-        EventBus.Instance.Unsubscribe<MouseIsClickedSignal>(BildRoadWhenClick);
-        EventBus.Instance.Subscrube<MouseIsClickedSignal>(BildBildingWhenClick);
-        EventBus.Instance.Unsubscribe<MouseIsHoldSignal>(BildRoadWhenHold);
-        EventBus.Instance.Unsubscribe<MouseIsUpSignal>(SetAllTemporaryRoads);
-        EventBus.Instance.Unsubscribe<SelectedObjectSignal>(SetSelectedObject);
+        _eventBus.Unsubscribe<MouseIsClickedSignal>(BildRoadWhenClick);
+        _eventBus.Unsubscribe<MouseIsClickedSignal>(BildBildingWhenClick);
+        _eventBus.Unsubscribe<MouseIsHoldSignal>(BildRoadWhenHold);
+        _eventBus.Unsubscribe<MouseIsUpSignal>(SetAllTemporaryRoads);
+        _eventBus.Unsubscribe<SelectedObjectSignal>(SetSelectedObject);
     }
 
     private bool CheckThatIsNodeFree(int positionX, int positionY)
     {
-        if (_grid[positionX, positionY].TypeOfNode == NodeType.Empty)
+        if (Grid[positionX, positionY].TypeOfNode == NodeType.Empty)
             return true;
         else
             return false;
@@ -111,7 +117,7 @@ public partial class BilderSystem : MonoBehaviour
                         {
                             for (int j = 0; j < _selectedObjectData.BildingSize.y; j++)
                             {
-                                _grid[signal.position.x + i, signal.position.z + j].MakeNodeSetup(NodeType.Bilding);
+                                Grid[signal.position.x + i, signal.position.z + j].MakeNodeSetup(NodeType.Bilding);
                             }
                         }
                     }
@@ -136,7 +142,7 @@ public partial class BilderSystem : MonoBehaviour
                         _bilder = new RoadBilder();
                         GameObject road = _bilder.Bild(BildingType.StrightRoad);
                         road.transform.position = signal.position;
-                        _grid[signal.position.x, signal.position.z].MakeNodeSetup(NodeType.Road);
+                        Grid[signal.position.x, signal.position.z].MakeNodeSetup(NodeType.Road);
 
                         if (TemporaryRoads.ContainsKey(new Vector3Int(signal.position.x, 0, signal.position.z)) == false)
                         {
@@ -167,7 +173,7 @@ public partial class BilderSystem : MonoBehaviour
                             _bilder = new RoadBilder();
                             GameObject road = _bilder.Bild(BildingType.StrightRoad);
                             road.transform.position = nodePosition;
-                            _grid[nodePosition.x, nodePosition.z].MakeNodeSetup(NodeType.Road);
+                            Grid[nodePosition.x, nodePosition.z].MakeNodeSetup(NodeType.Road);
 
                             if (!TemporaryRoads.ContainsKey(nodePosition))
                             {
@@ -186,7 +192,7 @@ public partial class BilderSystem : MonoBehaviour
         foreach (var road in TemporaryRoads)
         {
             Destroy(road.Value.gameObject);
-            _grid[road.Key.x, road.Key.z].MakeNodeSetup(NodeType.Empty);
+            Grid[road.Key.x, road.Key.z].MakeNodeSetup(NodeType.Empty);
         }
         TemporaryRoads.Clear();
     }
@@ -198,7 +204,7 @@ public partial class BilderSystem : MonoBehaviour
             Dictionary<Vector3Int, GameObject> TemporaryRoadsSnapShot = new Dictionary<Vector3Int, GameObject>(TemporaryRoads);
             foreach (var road in TemporaryRoadsSnapShot)
             {
-                _grid[road.Key.x, road.Key.z].MakeNodeSetup(NodeType.Road);
+                Grid[road.Key.x, road.Key.z].MakeNodeSetup(NodeType.Road);
                 _roadFixer.FixRoad(road.Key.x, road.Key.z);
 
                 foreach (var item in _roadFixer.RoadNeighbors)
@@ -208,7 +214,7 @@ public partial class BilderSystem : MonoBehaviour
             }
             foreach (var road in TemporaryRoads)
             {
-                _grid[road.Key.x, road.Key.z].MakeNodeSetup(NodeType.Road);
+                Grid[road.Key.x, road.Key.z].MakeNodeSetup(NodeType.Road);
                 if (AllRoads.ContainsKey(road.Key) == false)
                 {
                     AllRoads.Add(road.Key, road.Value);

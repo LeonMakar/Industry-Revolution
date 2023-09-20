@@ -1,18 +1,14 @@
 using System;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 /// <summary>
 /// Реализация паттерна сигнальная шина
 /// </summary>
-public class EventBus : MonoBehaviour
+public class EventBus : IMainService
 {
-    public static EventBus Instance { get; private set; }
-
     private Dictionary<string, List<object>> _signalCallbacks = new Dictionary<string, List<object>>();
-    private void Awake()
-    {
-        Instance = this;
-    }
+
     public void Subscrube<T>(Action<T> metod)
     {
         string key = typeof(T).Name;
@@ -22,6 +18,8 @@ public class EventBus : MonoBehaviour
         else
             _signalCallbacks.Add(key, new List<object>() { metod });
     }
+
+
     /// <summary>
     /// Вызывает все методы подписанные на данный класс
     /// </summary>

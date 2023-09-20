@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class AStarSearch
+public class AStarSearch : IService
 {
     private List<Vector3Int> _correctNodes = new List<Vector3Int>();
 

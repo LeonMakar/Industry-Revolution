@@ -2,17 +2,30 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class DIContainer : MonoBehaviour
+public class DIContainer
 {
-    // Start is called before the first frame update
-    void Start()
+    public static DIContainer Instance { get; private set; }
+
+    private Dictionary<string, object> _servises = new Dictionary<string, object>();
+
+    public DIContainer()
     {
-        
+        Instance = this;
     }
 
-    // Update is called once per frame
-    void Update()
+
+    public void RegisterService<T>(T service) where T : class
     {
-        
+        if (!_servises.ContainsKey(typeof(T).Name))
+            _servises.Add(typeof(T).Name, service);
+        else
+            Debug.Log("The same Key yet exist");
+    }
+
+    public T GetService<T>() where T : class
+    {
+        if (_servises.ContainsKey(typeof(T).Name))
+            return _servises[typeof(T).Name] as T;
+        else return null;
     }
 }

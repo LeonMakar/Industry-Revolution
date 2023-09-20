@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public class FixTransform : MonoBehaviour
@@ -10,7 +11,7 @@ public class FixTransform : MonoBehaviour
             _gameObjectTransform = GetComponent<Transform>();
         else
         {
-            throw new NullReferendeExeption();
+            throw new NullReferenceException();
         }
     }
     public void FixRotation(int x, int y, int z)

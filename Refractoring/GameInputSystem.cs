@@ -1,16 +1,19 @@
-﻿using Unity.VisualScripting;
+﻿using System;
+using System.Collections;
 using UnityEngine;
+using UnityEngine.Events;
 using UnityEngine.EventSystems;
-using UnityEngine.UIElements;
-using UnityEngine.WSA;
 
 public class GameInputSystem : MonoBehaviour
 {
     [SerializeField] private Camera _cameraMain;
     [SerializeField] private LayerMask _layerMask;
     [SerializeField] private GameObject _cursor;
+    [SerializeField] private CameraMovement _cameraMovement;
+
 
     private GameObject _objectUnderCursor;
+    private EventBus _eventBus;
 
     private AStarSearch _aStarSearch;
     private Vector3Int? _lastPosition = new Vector3Int(0, 1000, 0);
@@ -19,15 +22,17 @@ public class GameInputSystem : MonoBehaviour
 
     private Vector2 _cameraMovementVector;
     public Vector2 CameraMovementVector => _cameraMovementVector;
-
-    private void Start()
+    
+    public void Inject<T,Y>(T eventBus, Y aStarSearch) where T : IMainService where Y : IService
     {
-        _aStarSearch = new AStarSearch();
-        EventBus.Instance.Subscrube<MousePositionSignal>(CursorPosition);
+        _eventBus = eventBus as EventBus;
+        _aStarSearch = aStarSearch as AStarSearch;
+        _eventBus.Subscrube<MousePositionSignal>(CursorPosition);
     }
+
     private void OnDisable()
     {
-        EventBus.Instance.Unsubscribe<MousePositionSignal>(CursorPosition);
+        _eventBus.Unsubscribe<MousePositionSignal>(CursorPosition);
     }
     private void Update()
     {
@@ -36,6 +41,13 @@ public class GameInputSystem : MonoBehaviour
         CheckMouseIsHold();
         CheckMouseButtonIsUp();
         ResetObjectUnderCursor();
+        CheckArrowInput();
+        _cameraMovement.MoveCamera(new Vector3(_cameraMovementVector.x, 0, _cameraMovementVector.x));
+    }
+
+    private void CheckArrowInput()
+    {
+        _cameraMovementVector = new Vector2(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical"));
     }
     private Vector3Int? RaycastGround()
     {
@@ -64,7 +76,7 @@ public class GameInputSystem : MonoBehaviour
         ObjectDataForBilding selectedObject;
         _objectUnderCursor.TryGetComponent<ObjectDataForBilding>(out selectedObject);
         _cursor.SetActive(false);
-        EventBus.Instance.Invoke<SelectedObjectSignal>(new SelectedObjectSignal(selectedObject));
+        _eventBus.Invoke<SelectedObjectSignal>(new SelectedObjectSignal(selectedObject));
     }
 
     public void ResetObjectUnderCursor()
@@ -83,7 +95,7 @@ public class GameInputSystem : MonoBehaviour
             var position = RaycastGround();
             if (position != null)
             {
-                EventBus.Instance.Invoke<MouseIsClickedSignal>(new MouseIsClickedSignal(position.Value));
+                _eventBus.Invoke<MouseIsClickedSignal>(new MouseIsClickedSignal(position.Value));
                 _startPointForRoad = position.Value;
             }
         }
@@ -100,7 +112,7 @@ public class GameInputSystem : MonoBehaviour
                 {
                     try
                     {
-                        EventBus.Instance.Invoke<MouseIsHoldSignal>(new MouseIsHoldSignal
+                        _eventBus.Invoke<MouseIsHoldSignal>(new MouseIsHoldSignal
                             (_aStarSearch.GetNodesForPath(_startPointForRoad, position.Value)));
                     }
                     catch (System.Exception)
@@ -119,7 +131,7 @@ public class GameInputSystem : MonoBehaviour
         {
             var position = RaycastGround();
             if (position != null)
-                EventBus.Instance.Invoke<MousePositionSignal>(new MousePositionSignal(position));
+                _eventBus.Invoke<MousePositionSignal>(new MousePositionSignal(position));
         }
     }
 
@@ -127,7 +139,7 @@ public class GameInputSystem : MonoBehaviour
     {
         if (Input.GetMouseButtonUp(0) && EventSystem.current.IsPointerOverGameObject() == false)
         {
-            EventBus.Instance.Invoke<MouseIsUpSignal>(new MouseIsUpSignal());
+            _eventBus.Invoke<MouseIsUpSignal>(new MouseIsUpSignal());
         }
     }
 }
