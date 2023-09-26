@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-public class BildingBilder : Bilder
+public class BildingFactory : Factory
 {
     public string PathForBildingPrefab { get; set; }
     public override GameObject Bild(BildingType bildingType)

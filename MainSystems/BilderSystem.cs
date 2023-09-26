@@ -25,7 +25,7 @@ public class BilderSystem : MonoBehaviour, IMainService
 
 
     public GridSystem Grid;
-    private Bilder _bilder;
+    private Factory _bilder;
     private RoadFixer _roadFixer;
     private EventBus _eventBus;
 
@@ -104,10 +104,10 @@ public class BilderSystem : MonoBehaviour, IMainService
 
                 if (canBild)
                 {
-                    _bilder = new BildingBilder();
+                    _bilder = new BildingFactory();
                     if (_selectedObjectData.PathToPrefab != null)
                     {
-                        BildingBilder bilder = _bilder as BildingBilder;
+                        BildingFactory bilder = _bilder as BildingFactory;
                         bilder.PathForBildingPrefab = _selectedObjectData.PathToPrefab;
                         GameObject bilding = bilder.Bild(BildingType.Bilding);
                         bilding.transform.position = signal.position;
@@ -139,7 +139,7 @@ public class BilderSystem : MonoBehaviour, IMainService
                 {
                     if (CheckThatIsNodeFree(signal.position.x, signal.position.z))
                     {
-                        _bilder = new RoadBilder();
+                        _bilder = new RoadFactory();
                         GameObject road = _bilder.Bild(BildingType.StrightRoad);
                         road.transform.position = signal.position;
                         Grid[signal.position.x, signal.position.z].MakeNodeSetup(NodeType.Road);
@@ -170,7 +170,7 @@ public class BilderSystem : MonoBehaviour, IMainService
                     {
                         if (!AllRoads.ContainsKey(nodePosition))
                         {
-                            _bilder = new RoadBilder();
+                            _bilder = new RoadFactory();
                             GameObject road = _bilder.Bild(BildingType.StrightRoad);
                             road.transform.position = nodePosition;
                             Grid[nodePosition.x, nodePosition.z].MakeNodeSetup(NodeType.Road);

@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-public abstract class Bilder
+public abstract class Factory
 {
     public abstract GameObject Bild(BildingType bildingType);
 

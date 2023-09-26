@@ -42,7 +42,7 @@ public class GameInputSystem : MonoBehaviour
         CheckMouseButtonIsUp();
         ResetObjectUnderCursor();
         CheckArrowInput();
-        _cameraMovement.MoveCamera(new Vector3(_cameraMovementVector.x, 0, _cameraMovementVector.x));
+        _cameraMovement.MoveCamera(new Vector3(_cameraMovementVector.x, 0, _cameraMovementVector.y));
     }
 
     private void CheckArrowInput()

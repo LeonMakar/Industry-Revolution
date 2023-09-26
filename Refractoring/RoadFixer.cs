@@ -1,11 +1,19 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
-
+/// <summary>
+/// Need to Inject => RoadFactory
+/// </summary>
 public class RoadFixer: IService
 {
-    private Bilder _bilder = new RoadBilder();
+    private Factory _bilder;
     private Dictionary<string, NodeData> _roadNeighbors = new Dictionary<string, NodeData>();
     public Dictionary<string, NodeData> RoadNeighbors => _roadNeighbors;
+
+
+    public void Inject(Factory factory)
+    {
+        _bilder = factory;
+    }
 
     public void FixRoad(int positionX, int positionZ)
     {

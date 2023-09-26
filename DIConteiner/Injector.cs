@@ -1,3 +1,7 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using UnityEngine;
 
 public class Injector : MonoBehaviour
@@ -7,24 +11,31 @@ public class Injector : MonoBehaviour
     [SerializeField] private BilderSystem _bilderSystem;
     [SerializeField] private GameInputSystem _gameInputSystem;
 
-    private DIContainer _container;
+    private IContainer _container;
     private GridSystem _grid;
+    private IMainService _eventBus;
 
     public void Awake()
     {
         Instance = this;
-        _container = new DIContainer();
-        _grid = new GridSystem(10, 10);
 
-        _container.RegisterService(new RoadFixer());
-        _container.RegisterService(new EventBus());
-        _container.RegisterService(new AStarSearch());
+        _container = new Container();
+        _grid = new GridSystem(50, 50);
     }
 
     public void Start()
     {
-        _bilderSystem.Inject<IMainService, IService>(_grid, _container.GetService<RoadFixer>(), _container.GetService<EventBus>());
-        _gameInputSystem.Inject<IMainService, IService>(_container.GetService<EventBus>(), _container.GetService<AStarSearch>());
+        _container.Register<IService, RoadFixer>();
+        _container.Register<IMainService, EventBus>();
+        _container.Register<IService, AStarSearch>();
+        _container.Register<Factory, RoadFactory>();
+        _eventBus = _container.Resolve<IMainService, EventBus>();
+
+        _bilderSystem.Inject(_grid, _container.Resolve<IService, RoadFixer>(typeof(RoadFactory)), _eventBus);
+        _gameInputSystem.Inject(_eventBus, _container.Resolve<IService, AStarSearch>());
+
+
     }
+
 
 }
