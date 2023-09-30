@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Reflection;
 using UnityEngine;
 
 public class Injector
@@ -17,10 +16,10 @@ public class Injector
     private Dictionary<Type, object> _temporaryServices = new Dictionary<Type, object>();
 
 
-    public void Injecting<TImplamentation>(object someObject)
+    public void Injecting<TServiceWhoNeedInjectionType>(object serviceWhoNeedInjection)
     {
 
-        var method = typeof(TImplamentation).GetMethod(nameof(Methodname.Inject));
+        var method = typeof(TServiceWhoNeedInjectionType).GetMethod(nameof(Methodname.Inject));
         var parameters = method.GetParameters();
         var arguments = new object[parameters.Length];
         for (int i = 0; i < parameters.Length; i++)
@@ -34,7 +33,7 @@ public class Injector
                 throw new InvalidOperationException($"{parameterIType} dosnt builded in some container");
         }
 
-        method.Invoke(someObject, arguments);
+        method.Invoke(serviceWhoNeedInjection, arguments);
     }
     public void BuildSingletoneService<TService, TImplamentation>(params Type[] typesToResolve) where TImplamentation : TService
     {
