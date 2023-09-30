@@ -1,10 +1,11 @@
-using JetBrains.Annotations;
 using System;
 using System.Collections.Generic;
 
 public class DIContainer
 {
 }
+
+
 public interface IContainer
 {
     void Register<TService, TImplamentation>() where TImplamentation : TService;
@@ -16,7 +17,6 @@ public interface IContainer
 public class Container : IContainer
 {
     private readonly Dictionary<Type, List<Type>> _container = new Dictionary<Type, List<Type>>();
-
 
     public void Register<TService, TImplamentation>() where TImplamentation : TService
     {
@@ -51,7 +51,7 @@ public class Container : IContainer
                             if (typesToInject.Length == parametersInfo.Length)
                                 argumentsAsParameterForMethod[i] = CreatInstance(parametrServiceType, typesToInject[i]);
                             else
-                                argumentsAsParameterForMethod[i] = CreatInstance(parametrServiceType);
+                                throw new InvalidOperationException("Lenght of parameters does't match with lenth of typesToInject");
 
                         }
                         var objectForReturn = (TService)Activator.CreateInstance(implamentationType);
@@ -76,10 +76,6 @@ public class Container : IContainer
         {
             Console.WriteLine(item.Name);
             if (item == implamentation)
-            {
-                return Activator.CreateInstance(item);
-            }
-            else
                 return Activator.CreateInstance(item);
         }
         throw new ArgumentNullException("Not registered");

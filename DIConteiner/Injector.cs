@@ -1,40 +1,89 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using UnityEngine;
 
-public class Injector : MonoBehaviour
+public class Injector
 {
-    public static Injector Instance { get; private set; }
-
-    [SerializeField] private BilderSystem _bilderSystem;
-    [SerializeField] private GameInputSystem _gameInputSystem;
-
     private IContainer _container;
-    private GridSystem _grid;
-    private IMainService _eventBus;
 
-    public void Awake()
+    public Injector(IContainer container)
     {
-        Instance = this;
 
-        _container = new Container();
-        _grid = new GridSystem(50, 50);
+        _container = container;
     }
 
-    public void Start()
+    private Dictionary<Type, object> _singletonServices = new Dictionary<Type, object>();
+    private Dictionary<Type, object> _temporaryServices = new Dictionary<Type, object>();
+
+
+    public void Injecting<TImplamentation>(object someObject)
     {
-        _container.Register<IService, RoadFixer>();
-        _container.Register<IMainService, EventBus>();
-        _container.Register<IService, AStarSearch>();
-        _container.Register<Factory, RoadFactory>();
-        _eventBus = _container.Resolve<IMainService, EventBus>();
 
-        _bilderSystem.Inject(_grid, _container.Resolve<IService, RoadFixer>(typeof(RoadFactory)), _eventBus);
-        _gameInputSystem.Inject(_eventBus, _container.Resolve<IService, AStarSearch>());
+        var method = typeof(TImplamentation).GetMethod(nameof(Methodname.Inject));
+        var parameters = method.GetParameters();
+        var arguments = new object[parameters.Length];
+        for (int i = 0; i < parameters.Length; i++)
+        {
+            var parameterIType = parameters[i].ParameterType;
+            if (_singletonServices.ContainsKey(parameterIType))
+                arguments[i] = _singletonServices[parameterIType];
+            else if (_temporaryServices.ContainsKey(parameterIType))
+                arguments[i] = _temporaryServices[parameterIType];
+            else
+                throw new InvalidOperationException($"{parameterIType} dosnt builded in some container");
+        }
 
+        method.Invoke(someObject, arguments);
+    }
+    public void BuildSingletoneService<TService, TImplamentation>(params Type[] typesToResolve) where TImplamentation : TService
+    {
+        if (_singletonServices.ContainsKey(typeof(TImplamentation)))
+            Debug.LogErrorFormat(typeof(TImplamentation) + " almost exist in Dictionary");
+        else
+            _singletonServices.Add(typeof(TImplamentation), _container.Resolve<TService, TImplamentation>(typesToResolve));
+    }
 
+    public void BuildTemporaryService<TService, TImplamentation>(params Type[] typesToResolve) where TImplamentation : TService
+    {
+        if (_temporaryServices.ContainsKey(typeof(TImplamentation)))
+            _temporaryServices[(typeof(TImplamentation))] = _container.Resolve<TService, TImplamentation>(typesToResolve);
+        else
+            _temporaryServices.Add(typeof(TImplamentation), _container.Resolve<TService, TImplamentation>(typesToResolve));
+    }
+
+    public void AddExistingSingletoneService<TImplamentation>(object currentObject)
+    {
+        if (_singletonServices.ContainsKey(typeof(TImplamentation)))
+            Debug.LogErrorFormat(typeof(TImplamentation) + " almost exist in Dictionary");
+        else
+            _singletonServices.Add(typeof(TImplamentation), currentObject);
+
+    }
+    public void AddExistingTemporaryService<TImplamentation>(object currentObject)
+    {
+        if (_temporaryServices.ContainsKey(typeof(TImplamentation)))
+            _temporaryServices[(typeof(TImplamentation))] = currentObject;
+
+        else
+            _temporaryServices.Add(typeof(TImplamentation), currentObject);
+
+    }
+
+    public TService InjectSingletoneService<TImplamentation, TService>() where TImplamentation : TService
+    {
+        if (_singletonServices.ContainsKey(typeof(TImplamentation)))
+            return (TService)_singletonServices[typeof(TImplamentation)];
+        else
+            throw new InvalidOperationException($"{typeof(TImplamentation)} dosnt register in singletone dictionary");
+    }
+
+    public TService InjectTemporaryService<TImplamentation, TService>() where TImplamentation : TService
+    {
+        if (_temporaryServices.ContainsKey(typeof(TImplamentation)))
+            return (TService)_temporaryServices[typeof(TImplamentation)];
+        else
+            throw new InvalidOperationException("Current implamentation dosnt register in temporary dictionary");
     }
 
 

@@ -1,14 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.ComponentModel;
-using System.Linq;
-using System.Runtime.CompilerServices;
-using Unity.VisualScripting;
-using UnityEditor.Rendering;
-using UnityEditorInternal;
 using UnityEngine;
-using UnityEngine.Rendering.Universal;
-using UnityEngine.UIElements;
 
 public class BilderSystem : MonoBehaviour, IMainService
 {
@@ -32,11 +24,12 @@ public class BilderSystem : MonoBehaviour, IMainService
 
     public List<Vector3Int> RoadsToRecheck => _roadsToRecheck;
 
-    public void Inject<T, Y>(T gridSystem, Y roadFixer, T eventBus) where T : IMainService where Y : IService
+
+    public void Inject(GridSystem gridSystem, RoadFixer roadFixer, EventBus eventBus)
     {
-        Grid = gridSystem as GridSystem;
-        _roadFixer = roadFixer as RoadFixer;
-        _eventBus = eventBus as EventBus;
+        Grid = gridSystem;
+        _roadFixer = roadFixer;
+        _eventBus = eventBus;
 
         Instance = this;
         _eventBus.Subscrube<MouseIsClickedSignal>(BildRoadWhenClick);
@@ -223,6 +216,7 @@ public class BilderSystem : MonoBehaviour, IMainService
             TemporaryRoads.Clear();
         }
     }
+
 }
 public enum StructureType
 {

@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections;
-using UnityEngine;
-using UnityEngine.Events;
+﻿using UnityEngine;
 using UnityEngine.EventSystems;
 
 public class GameInputSystem : MonoBehaviour
@@ -23,10 +20,10 @@ public class GameInputSystem : MonoBehaviour
     private Vector2 _cameraMovementVector;
     public Vector2 CameraMovementVector => _cameraMovementVector;
     
-    public void Inject<T,Y>(T eventBus, Y aStarSearch) where T : IMainService where Y : IService
+    public void Inject(EventBus eventBus, AStarSearch aStarSearch) 
     {
-        _eventBus = eventBus as EventBus;
-        _aStarSearch = aStarSearch as AStarSearch;
+        _eventBus = eventBus;
+        _aStarSearch = aStarSearch ;
         _eventBus.Subscrube<MousePositionSignal>(CursorPosition);
     }
 
