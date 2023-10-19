@@ -1,3 +1,4 @@
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class Registration : MonoBehaviour
@@ -10,30 +11,36 @@ public class Registration : MonoBehaviour
 
     private Injector _injector;
 
-
     private void Awake()
     {
         _grid = new GridSystem(50, 50);
         _injector = new Injector(_container);
 
-        _container.Register<IService, RoadFixer>();
-        _container.Register<IService, AStarSearch>();
-        _container.Register<IMainService, EventBus>();
+        _container.Register<RoadFixer, RoadFixer>();
+        _container.Register<AStarSearch, AStarSearch>();
+        _container.Register<EventBus, EventBus>();
         _container.Register<Factory, RoadFactory>();
         _container.Register<Injector, Injector>();
+        _container.Register<AStarSearchForCar, AStarSearchForCar>();
+        _container.Register<CarAI, CarAI>();
 
-        _injector.AddExistingSingletoneService<Injector>(_injector);
-        _injector.AddExistingSingletoneService<GridSystem>(_grid);
+        _injector.AddExistingSingletoneService<Injector, Injector>(_injector);
+        _injector.AddExistingSingletoneService<GridSystem, GridSystem>(_grid);
+        _injector.AddExistingSingletoneService<BilderSystem, BilderSystem>(_bilderSystem);
 
-        _injector.BuildSingletoneService<IService, RoadFixer>(typeof(RoadFactory));
-        _injector.BuildSingletoneService<IMainService, EventBus>();
-        _injector.BuildSingletoneService<IService, AStarSearch>();
+        _injector.BuildSingletoneService<Factory, RoadFactory>();
+        _injector.BuildSingletoneService<AStarSearch, AStarSearch>();
+        _injector.BuildSingletoneService<RoadFixer, RoadFixer>();
+        _injector.BuildSingletoneService<EventBus, EventBus>();
+        //_injector.BuildSingletoneService<AStarSearchForCar, AStarSearchForCar>();
+        _injector.BuildSingletoneService<CarAI, CarAI>();
 
 
-        _injector.Injecting<BilderSystem>(_bilderSystem);
-        _injector.Injecting<GameInputSystem>(_gameInputSystem);
+        _injector.InjectingSingletoneServices<BilderSystem>(_bilderSystem);
+        _injector.InjectingSingletoneServices<RoadFixer>(_injector.GetSingletoneService<RoadFixer, RoadFixer>());
+        _injector.InjectingSingletoneServices<GameInputSystem>(_gameInputSystem);
+        _injector.GetSingletoneService<CarAI, CarAI>().Injecting(_injector);
 
     }
-
 
 }

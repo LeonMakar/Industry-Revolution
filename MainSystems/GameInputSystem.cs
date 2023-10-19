@@ -1,6 +1,8 @@
 ﻿using UnityEngine;
 using UnityEngine.EventSystems;
-
+/// <summary>
+/// Need to Inject => EventBus, AStarSearch
+/// </summary>
 public class GameInputSystem : MonoBehaviour
 {
     [SerializeField] private Camera _cameraMain;
@@ -19,8 +21,8 @@ public class GameInputSystem : MonoBehaviour
 
     private Vector2 _cameraMovementVector;
     public Vector2 CameraMovementVector => _cameraMovementVector;
-    
-    public void Inject(EventBus eventBus, AStarSearch aStarSearch) 
+
+    public void InjectSingletone(EventBus eventBus,AStarSearch aStarSearch)
     {
         _eventBus = eventBus;
         _aStarSearch = aStarSearch ;
@@ -70,8 +72,7 @@ public class GameInputSystem : MonoBehaviour
         if (_objectUnderCursor != null)
             Destroy(_objectUnderCursor.gameObject);
         _objectUnderCursor = Instantiate(gameObject, new Vector3(_cursor.transform.position.x, 0.02f, _cursor.transform.position.z), Quaternion.identity);
-        ObjectDataForBilding selectedObject;
-        _objectUnderCursor.TryGetComponent<ObjectDataForBilding>(out selectedObject);
+        _objectUnderCursor.TryGetComponent<ObjectDataForBilding>(out ObjectDataForBilding selectedObject);
         _cursor.SetActive(false);
         _eventBus.Invoke<SelectedObjectSignal>(new SelectedObjectSignal(selectedObject));
     }
@@ -80,8 +81,11 @@ public class GameInputSystem : MonoBehaviour
     {
         if (Input.GetKeyDown(KeyCode.Escape))
         {
-            Destroy(_objectUnderCursor.gameObject);
-            _objectUnderCursor = null;
+            if (_objectUnderCursor != null)
+            {
+                Destroy(_objectUnderCursor.gameObject);
+                _objectUnderCursor = null;
+            }
             _cursor.SetActive(true);
         }
     }

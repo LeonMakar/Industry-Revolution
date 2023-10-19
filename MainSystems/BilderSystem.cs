@@ -1,10 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
+using Unity.VisualScripting;
 using UnityEngine;
 
-public class BilderSystem : MonoBehaviour, IMainService
+/// <summary>
+/// Need To Inject => GridSystem,RoadFixer,EventBus
+/// </summary>
+public class BilderSystem : MonoBehaviour, IMainService, IInjectable
 {
-    public static BilderSystem Instance { get; private set; }
     private ObjectDataForBilding _selectedObjectData;
 
     public FirstCity _firstCity = new FirstCity(5);
@@ -24,14 +28,26 @@ public class BilderSystem : MonoBehaviour, IMainService
 
     public List<Vector3Int> RoadsToRecheck => _roadsToRecheck;
 
+    public Dictionary<Type, Type> ServiceAndImplamentation { get;} = new Dictionary<Type, Type>()
+    {
+        [typeof(GridSystem)] = typeof(GridSystem),
+        [typeof(RoadFixer)] = typeof(RoadFixer),
+        [typeof(EventBus)] = typeof(EventBus)
+    };
 
-    public void Inject(GridSystem gridSystem, RoadFixer roadFixer, EventBus eventBus)
+
+    public void Inject(params IService[] services)
+    {
+        //Grid = gridSystem;
+        //_roadFixer = roadFixer;
+        //_eventBus = eventBus;
+    }
+    public void InjectSingletone(GridSystem gridSystem, RoadFixer roadFixer, EventBus eventBus)
     {
         Grid = gridSystem;
         _roadFixer = roadFixer;
         _eventBus = eventBus;
 
-        Instance = this;
         _eventBus.Subscrube<MouseIsClickedSignal>(BildRoadWhenClick);
         _eventBus.Subscrube<MouseIsClickedSignal>(BildBildingWhenClick);
         _eventBus.Subscrube<MouseIsHoldSignal>(BildRoadWhenHold);
@@ -211,12 +227,31 @@ public class BilderSystem : MonoBehaviour, IMainService
                 if (AllRoads.ContainsKey(road.Key) == false)
                 {
                     AllRoads.Add(road.Key, road.Value);
+                    SetRoadMarksPositions(road.Value);
                 }
             }
             TemporaryRoads.Clear();
         }
     }
 
+    public void SetRoadMarksPositions(GameObject road)
+    {
+        road.TryGetComponent(out RoadInfo roadInfo);
+        roadInfo.RoadSetDirectionEvent.Invoke();
+    }
+    public List<Vector3Int> CheckNeighbors(Vector3Int position)
+    {
+        List<Vector3Int> neighbors = new List<Vector3Int>();
+        if (AllRoads.ContainsKey(new Vector3Int(position.x - 1, 0, position.z))) //Left
+            neighbors.Add(new Vector3Int(position.x - 1, 0, position.z));
+        else if (AllRoads.ContainsKey(new Vector3Int(position.x + 1, 0, position.z))) //Right
+            neighbors.Add(new Vector3Int(position.x + 1, 0, position.z));
+        else if (AllRoads.ContainsKey(new Vector3Int(position.x, 0, position.z + 1))) //Up
+            neighbors.Add(new Vector3Int(position.x, 0, position.z + 1));
+        else if (AllRoads.ContainsKey(new Vector3Int(position.x, 0, position.z - 1))) //Down
+            neighbors.Add(new Vector3Int(position.x, 0, position.z - 1));
+        return neighbors;
+    }
 }
 public enum StructureType
 {

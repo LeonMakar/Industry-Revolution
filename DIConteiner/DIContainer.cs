@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 public class DIContainer
 {
@@ -11,6 +12,7 @@ public interface IContainer
     void Register<TService, TImplamentation>() where TImplamentation : TService;
 
     TService Resolve<TService, TImplamentation>(params Type[] typesToInject);
+    object Resolve(Type service, Type implamentation, params Type[] typesToInject);
 
 }
 
@@ -21,13 +23,60 @@ public class Container : IContainer
     public void Register<TService, TImplamentation>() where TImplamentation : TService
     {
         if (!_container.ContainsKey(typeof(TService)))
+        {
             _container[typeof(TService)] = new List<Type>() { typeof(TImplamentation) };
+        }
         else
         {
             _container[typeof(TService)].Add(typeof(TImplamentation));
         }
     }
+    public object Resolve(Type service, Type implamentation, params Type[] typesToInject)
+    {
+        if(_container.ContainsKey(service))
+        {
 
+            foreach (var item in _container[service])
+            {
+                if (item == implamentation)
+                {
+                    Type implamentationType = item;
+                    if (implamentationType.GetMethod(nameof(Methodname.InjectSingletone)) != null)
+                    {
+                        var methodInfo = implamentationType.GetMethod(nameof(Methodname.InjectSingletone));
+                        var parametersInfo = methodInfo.GetParameters();
+                        object[] argumentsAsParameterForMethod = new object[parametersInfo.Length];
+
+                        for (int i = 0; i < parametersInfo.Length; i++)
+                        {
+                            try
+                            {
+                                var parametrServiceType = parametersInfo[i].ParameterType;
+                                if (typesToInject.Length == parametersInfo.Length)
+                                    argumentsAsParameterForMethod[i] = CreatInstance(parametrServiceType, typesToInject[i]);
+
+                            }
+                            catch (Exception)
+                            {
+                                Debug.Log("Lenght of parameters does't match with lenth of typesToInject");
+                            }
+
+                        }
+                        var objectForReturn = Activator.CreateInstance(implamentationType);
+                        methodInfo.Invoke(objectForReturn, argumentsAsParameterForMethod);
+
+                        return objectForReturn;
+
+                    }
+                    else
+                        return Activator.CreateInstance(implamentationType);
+                }
+                else
+                    Debug.LogErrorFormat($"Types {item} and {implamentation} dosnt compare");
+            }
+        }
+        throw new InvalidOperationException($"Current {service} was not registered ");
+    }
     public TService Resolve<TService, TImplamentation>(params Type[] typesToInject)
     {
         if (_container.ContainsKey(typeof(TService)))
@@ -38,20 +87,25 @@ public class Container : IContainer
                 if (item == typeof(TImplamentation))
                 {
                     Type implamentationType = item;
-                    if (implamentationType.GetMethod(nameof(Methodname.Inject)) != null)
+                    if (implamentationType.GetMethod(nameof(Methodname.InjectSingletone)) != null)
                     {
-                        var methodInfo = implamentationType.GetMethod(nameof(Methodname.Inject));
+                        var methodInfo = implamentationType.GetMethod(nameof(Methodname.InjectSingletone));
                         var parametersInfo = methodInfo.GetParameters();
                         object[] argumentsAsParameterForMethod = new object[parametersInfo.Length];
 
                         for (int i = 0; i < parametersInfo.Length; i++)
                         {
-                            var parametrServiceType = parametersInfo[i].ParameterType;
+                            try
+                            {
+                                var parametrServiceType = parametersInfo[i].ParameterType;
+                                if (typesToInject.Length == parametersInfo.Length)
+                                    argumentsAsParameterForMethod[i] = CreatInstance(parametrServiceType, typesToInject[i]);
 
-                            if (typesToInject.Length == parametersInfo.Length)
-                                argumentsAsParameterForMethod[i] = CreatInstance(parametrServiceType, typesToInject[i]);
-                            else
-                                throw new InvalidOperationException("Lenght of parameters does't match with lenth of typesToInject");
+                            }
+                            catch (Exception)
+                            {
+                                Debug.Log("Lenght of parameters does't match with lenth of typesToInject");
+                            }
 
                         }
                         var objectForReturn = (TService)Activator.CreateInstance(implamentationType);
@@ -65,9 +119,8 @@ public class Container : IContainer
                 }
             }
         }
-        else
-            throw new ArgumentNullException($"Current {typeof(TService)} was not registered ");
-        throw new ArgumentNullException($"Current {typeof(TService)} was not registered ");
+
+        throw new InvalidOperationException($"Current {typeof(TService)} was not registered ");
 
     }
     private object CreatInstance(Type serviceType, Type implamentation = null)
@@ -78,13 +131,14 @@ public class Container : IContainer
             if (item == implamentation)
                 return Activator.CreateInstance(item);
         }
-        throw new ArgumentNullException("Not registered");
+        throw new InvalidOperationException("Not registered");
     }
 }
 
 public enum Methodname
 {
-    Inject = 0,
+    InjectSingletone = 0,
+    InjectTemporary = 1,
 }
 
 

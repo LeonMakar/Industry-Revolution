@@ -1,25 +1,28 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UIElements;
 
 
 /// <summary>
-/// Need to Inject => RoadFactory
+/// Need to Inject => RoadFactory,BilderSystem
 /// </summary>
-public class RoadFixer: IService
+public class RoadFixer : IService
 {
     private Factory _bilder;
     private Dictionary<string, NodeData> _roadNeighbors = new Dictionary<string, NodeData>();
     public Dictionary<string, NodeData> RoadNeighbors => _roadNeighbors;
+    BilderSystem _bilderSystem;
 
 
-    public void Inject(Factory factory)
+    public void InjectSingletone(Factory factory, BilderSystem bilderSystem)
     {
         _bilder = factory;
+        _bilderSystem = bilderSystem;
     }
 
     public void FixRoad(int positionX, int positionZ)
     {
-        _roadNeighbors = BilderSystem.Instance.Grid.GetAllNeighborsNearThePointOffSpecificType(positionX, positionZ, NodeType.Road);
+        _roadNeighbors = _bilderSystem.Grid.GetAllNeighborsNearThePointOffSpecificType(positionX, positionZ, NodeType.Road);
 
         //Left, Up , Right and Down is Road
         if (_roadNeighbors.ContainsKey("Left") && _roadNeighbors.ContainsKey("Up") && _roadNeighbors.ContainsKey("Right") && _roadNeighbors.ContainsKey("Down"))
@@ -76,62 +79,57 @@ public class RoadFixer: IService
         //Left and Right is Road, Up and Down something else
         else if (_roadNeighbors.ContainsKey("Left") && _roadNeighbors.ContainsKey("Right"))
         {
-            SetRoadRotation(positionX, positionZ, 90);
+            SetRoadRotation(positionX, positionZ, BildingType.HorizontalRoad, 90);
         }
         //Left is Road, Right, Up and Down something else
         else if (_roadNeighbors.ContainsKey("Left"))
         {
-            SetRoadRotation(positionX, positionZ, 90);
+            SetRoadRotation(positionX, positionZ, BildingType.HorizontalRoad, 90);
         }
         //Right is Road, Left, Up and Down something else
         else if (_roadNeighbors.ContainsKey("Right"))
         {
-            SetRoadRotation(positionX, positionZ, 90);
+            SetRoadRotation(positionX, positionZ, BildingType.HorizontalRoad, 90);
         }
     }
 
     public void FixNeighborsRoad()
     {
-        foreach (var road in BilderSystem.Instance.RoadsToRecheck)
+        foreach (var road in _bilderSystem.RoadsToRecheck)
         {
             FixRoad(road.x, road.z);
+
         }
-        BilderSystem.Instance.RoadsToRecheck.Clear();
+        _bilderSystem.RoadsToRecheck.Clear();
     }
     private void SetRoadRotation(int positionX, int positionZ, BildingType roadType, int nodeRotation)
     {
+        GameObject roadGameObject = null;
         if (roadType != BildingType.NothingRoad)
         {
             var road = _bilder.Bild(roadType);
             road.transform.position = new Vector3Int(positionX, 0, positionZ);
-
-            if (BilderSystem.Instance.TemporaryRoads.ContainsKey(new Vector3Int(positionX, 0, positionZ)))
+            roadGameObject = road;
+            if (_bilderSystem.TemporaryRoads.ContainsKey(new Vector3Int(positionX, 0, positionZ)))
             {
-                BilderSystem.Instance.DestroyRoadFromTemporaryRoads(positionX, positionZ);
-                BilderSystem.Instance.TemporaryRoads[new Vector3Int(positionX, 0, positionZ)] = road;
+                _bilderSystem.DestroyRoadFromTemporaryRoads(positionX, positionZ);
+                _bilderSystem.TemporaryRoads[new Vector3Int(positionX, 0, positionZ)] = road;
             }
-            if (BilderSystem.Instance.AllRoads.ContainsKey(new Vector3Int(positionX, 0, positionZ)))
+            if (_bilderSystem.AllRoads.ContainsKey(new Vector3Int(positionX, 0, positionZ)))
             {
-                BilderSystem.Instance.DestroyRoadFromAllRoads(positionX, positionZ);
-                BilderSystem.Instance.AllRoads[new Vector3Int(positionX, 0, positionZ)] = road;
+                _bilderSystem.DestroyRoadFromAllRoads(positionX, positionZ);
+                _bilderSystem.AllRoads[new Vector3Int(positionX, 0, positionZ)] = road;
+
             }
         }
 
-        if (BilderSystem.Instance.TemporaryRoads.ContainsKey(new Vector3Int(positionX, 0, positionZ)))
-            BilderSystem.Instance.TemporaryRoads[new Vector3Int(positionX, 0, positionZ)].GetComponentInChildren<FixTransform>().FixRotation(nodeRotation);
+        if (_bilderSystem.TemporaryRoads.ContainsKey(new Vector3Int(positionX, 0, positionZ)))
+            _bilderSystem.TemporaryRoads[new Vector3Int(positionX, 0, positionZ)].GetComponentInChildren<FixTransform>().FixRotation(nodeRotation);
         else
-            BilderSystem.Instance.AllRoads[new Vector3Int(positionX, 0, positionZ)].GetComponentInChildren<FixTransform>().FixRotation(nodeRotation);
+            _bilderSystem.AllRoads[new Vector3Int(positionX, 0, positionZ)].GetComponentInChildren<FixTransform>().FixRotation(nodeRotation);
 
+            _bilderSystem.SetRoadMarksPositions(roadGameObject);
     }
-
-    private void SetRoadRotation(int positionX, int positionZ, int nodeRotation)
-    {
-        if (BilderSystem.Instance.TemporaryRoads.ContainsKey(new Vector3Int(positionX, 0, positionZ)))
-            BilderSystem.Instance.TemporaryRoads[new Vector3Int(positionX, 0, positionZ)].GetComponentInChildren<FixTransform>().FixRotation(nodeRotation);
-        else
-            BilderSystem.Instance.AllRoads[new Vector3Int(positionX, 0, positionZ)].GetComponentInChildren<FixTransform>().FixRotation(nodeRotation);
-    }
-
 }
 
 

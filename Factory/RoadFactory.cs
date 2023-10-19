@@ -25,6 +25,10 @@ public class RoadFactory : Factory
                 return roadF;
             case BildingType.NothingRoad:
                 return null;
+            case BildingType.HorizontalRoad:
+                var roadHorizontal = Resources.Load<GameObject>("Roads/RoadHorizontal");
+                GameObject roadH = GameObject.Instantiate(roadHorizontal);
+                return roadH;
             default: return null;
         }
     }
@@ -38,7 +42,8 @@ public enum BildingType
     TreeWayRoad = 2,
     FourWayRoad = 3,
     NothingRoad = 4,
-    Bilding = 5,
-    District = 6,
-    City = 7,
+    HorizontalRoad = 5,
+    Bilding = 6,
+    District = 7,
+    City = 8,
 }
