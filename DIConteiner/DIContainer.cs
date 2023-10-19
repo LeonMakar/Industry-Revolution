@@ -117,6 +117,8 @@ public class Container : IContainer
                     else
                         return (TService)Activator.CreateInstance(implamentationType);
                 }
+                Debug.LogErrorFormat($"Types {item} and {typeof(TImplamentation)} dosnt compare");
+
             }
         }
 

@@ -15,6 +15,7 @@ public class Registration : MonoBehaviour
     {
         _grid = new GridSystem(50, 50);
         _injector = new Injector(_container);
+        Injector.Instance = _injector;
 
         _container.Register<RoadFixer, RoadFixer>();
         _container.Register<AStarSearch, AStarSearch>();
@@ -22,7 +23,7 @@ public class Registration : MonoBehaviour
         _container.Register<Factory, RoadFactory>();
         _container.Register<Injector, Injector>();
         _container.Register<AStarSearchForCar, AStarSearchForCar>();
-        _container.Register<CarAI, CarAI>();
+        //_container.Register<CarAI, CarAI>();
 
         _injector.AddExistingSingletoneService<Injector, Injector>(_injector);
         _injector.AddExistingSingletoneService<GridSystem, GridSystem>(_grid);
@@ -33,13 +34,13 @@ public class Registration : MonoBehaviour
         _injector.BuildSingletoneService<RoadFixer, RoadFixer>();
         _injector.BuildSingletoneService<EventBus, EventBus>();
         //_injector.BuildSingletoneService<AStarSearchForCar, AStarSearchForCar>();
-        _injector.BuildSingletoneService<CarAI, CarAI>();
+        //_injector.BuildSingletoneService<CarAI, CarAI>();
 
 
         _injector.InjectingSingletoneServices<BilderSystem>(_bilderSystem);
         _injector.InjectingSingletoneServices<RoadFixer>(_injector.GetSingletoneService<RoadFixer, RoadFixer>());
         _injector.InjectingSingletoneServices<GameInputSystem>(_gameInputSystem);
-        _injector.GetSingletoneService<CarAI, CarAI>().Injecting(_injector);
+        //_injector.GetSingletoneService<CarAI, CarAI>().Injecting(_injector);
 
     }
 

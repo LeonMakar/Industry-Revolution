@@ -7,7 +7,7 @@ using UnityEngine;
 /// <summary>
 /// Need To Inject => GridSystem,RoadFixer,EventBus
 /// </summary>
-public class BilderSystem : MonoBehaviour, IMainService, IInjectable
+public class BilderSystem : MonoBehaviour, IInjectable, IService
 {
     private ObjectDataForBilding _selectedObjectData;
 
@@ -28,7 +28,7 @@ public class BilderSystem : MonoBehaviour, IMainService, IInjectable
 
     public List<Vector3Int> RoadsToRecheck => _roadsToRecheck;
 
-    public Dictionary<Type, Type> ServiceAndImplamentation { get;} = new Dictionary<Type, Type>()
+    public Dictionary<Type, Type> ServiceAndImplamentation { get; } = new Dictionary<Type, Type>()
     {
         [typeof(GridSystem)] = typeof(GridSystem),
         [typeof(RoadFixer)] = typeof(RoadFixer),
@@ -238,6 +238,7 @@ public class BilderSystem : MonoBehaviour, IMainService, IInjectable
     {
         road.TryGetComponent(out RoadInfo roadInfo);
         roadInfo.RoadSetDirectionEvent.Invoke();
+        roadInfo.GetIRoadEvent.Invoke(roadInfo);
     }
     public List<Vector3Int> CheckNeighbors(Vector3Int position)
     {

@@ -10,21 +10,19 @@ public class AStarSearchForCar : IService
     {
         Vector3Int currentPoint = startPoint;
         _correctPoints.Add(currentPoint);
-        try
-        {
-            while (currentPoint != endPoint)
-            {
-                currentPoint = CalculateClosestNeighbor(currentPoint, endPoint);
-                _correctPoints.Add(currentPoint);
-            }
-
-        }
-        catch (Exception)
+        while (currentPoint != endPoint)
         {
 
-            Debug.Log("Возникла ошибка при создания маршрута машины");
+            currentPoint = CalculateClosestNeighbor(currentPoint, endPoint);
+            _correctPoints.Add(currentPoint);
         }
-        return _correctPoints;
+        if (currentPoint == endPoint)
+        {
+            _correctPoints.Add(endPoint);
+            return _correctPoints;
+        }
+        else
+            throw new Exception("Неверный просчёт пути");
     }
 
     private Vector3Int CalculateClosestNeighbor(Vector3Int currentPosition, Vector3Int endPosition)
@@ -34,7 +32,8 @@ public class AStarSearchForCar : IService
 
         foreach (var item in positionsWithRoadSelector)
         {
-            position.Add(item.Value.GetNodePosition, item.Key);
+            if (!_correctPoints.Contains(item.Value.GetNodePosition))
+                position.Add(item.Value.GetNodePosition, item.Key);
         }
 
         double smolestVector = Double.MaxValue;

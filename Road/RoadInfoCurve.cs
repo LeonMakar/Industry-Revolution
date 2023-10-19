@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-public class RoadInfoCurve : MonoBehaviour
+public class RoadInfoCurve : MonoBehaviour, IRoad
 {
     [SerializeField] private List<Mark> _roadPointsFirst;
     [SerializeField] private List<Mark> _roadPointsSecond;
@@ -19,5 +19,21 @@ public class RoadInfoCurve : MonoBehaviour
     {
         pathToFirstSide = new Vector3Int(Mathf.FloorToInt(_lastMarkFirstSide.transform.position.x), 0, Mathf.FloorToInt(_lastMarkFirstSide.transform.position.z));
         pathToSecondSide = new Vector3Int(Mathf.FloorToInt(_lastMarkSecondSide.transform.position.x), 0, Mathf.FloorToInt(_lastMarkSecondSide.transform.position.z));
+    }
+
+    public List<Mark> Getpath(Vector3Int from, Vector3Int to)
+    {
+        if (to == pathToFirstSide)
+            return _roadPointsFirst;
+        else if (to == pathToSecondSide)
+            return _roadPointsSecond;
+
+        throw new System.Exception($"Vector {from} and {to} dosnt compare if some path(Curve)");
+
+    }
+
+    public void SetConnectionToRoadInfo(RoadInfo roadInfo)
+    {
+        roadInfo.SetConnection(this);
     }
 }

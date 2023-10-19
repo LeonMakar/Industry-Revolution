@@ -11,6 +11,7 @@ public class Injector
         _container = container;
     }
 
+    public static Injector Instance;
     private Dictionary<Type, object> _singletonServices = new Dictionary<Type, object>();
 
     //private Dictionary<Type, object> _temporaryServices = new Dictionary<Type, object>();
@@ -19,6 +20,10 @@ public class Injector
 
     private Dictionary<Type, Dictionary<Type, object>> _temporaryServices = new Dictionary<Type, Dictionary<Type, object>>();
 
+    public void Init(IInjectable injectableObject)
+    {
+        injectableObject.Injecting(this);
+    }
     public bool CheckAvailabilitySingletoneServiceInInjector(Type type)
     {
         if (_singletonServices.ContainsKey(type))
