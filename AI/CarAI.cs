@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -9,12 +10,18 @@ public class CarAI : MonoBehaviour, IInjectable
     private List<Mark> _pathNavigationPoints = new();
 
     private Vector3Int _curentGridPoint = new Vector3Int();
+    private Vector3Int _lastGridPoint = new Vector3Int();
 
     private AStarSearchForCar _aStar;
     private BilderSystem _bilderSystem;
+    [SerializeField] private Rigidbody _rigidbody;
 
     public Vector3Int From;
     public Vector3Int To;
+
+    private int _lastMarkIndex;
+    private Mark _markToMoove;
+
     public LineRenderer LineRenderer;
     public Dictionary<Type, Type> ServiceAndImplamentation { get; } = new Dictionary<Type, Type>()
     {
@@ -51,34 +58,30 @@ public class CarAI : MonoBehaviour, IInjectable
         _pathGridPoints.Clear();
         _pathNavigationPoints.Clear();
         _pathGridPoints = _aStar.FindPath(From, To);
-        Debug.Log("Точки");
-        foreach (var item in _pathGridPoints)
-        {
-            Debug.Log(item);
-        }
         CreatNavigationPoints();
+        gameObject.transform.position = new Vector3(_pathNavigationPoints[0].transform.position.x, 0.15f, _pathNavigationPoints[0].transform.position.x);
+        _lastMarkIndex = 1;
+        _markToMoove = _pathNavigationPoints[_lastMarkIndex];
     }
 
     public void CreatNavigationPoints()
     {
         _curentGridPoint = _pathGridPoints.First();
+        _lastGridPoint = _curentGridPoint;
+
         for (int i = 1; i < _pathGridPoints.Count; i++)
         {
             _bilderSystem.AllRoads[_curentGridPoint].TryGetComponent<RoadInfo>(out RoadInfo roadInfo);
-            AddNavigationPoints(roadInfo.Road.Getpath(_curentGridPoint, _pathGridPoints[i]));
+            AddNavigationPoints(roadInfo.Road.Getpath(_lastGridPoint, _pathGridPoints[i]));
             _curentGridPoint = _pathGridPoints[i];
+            _lastGridPoint = _pathGridPoints[i - 1];
             if (_curentGridPoint == _pathGridPoints.Last())
                 break;
-        }
-        Debug.Log("Навигационные точки" + _pathNavigationPoints.Count);
-        foreach (var item in _pathNavigationPoints)
-        {
-            Debug.Log(item.transform.position);
         }
         LineRenderer.positionCount = _pathNavigationPoints.Count;
         for (int i = 0; i < LineRenderer.positionCount; i++)
         {
-            LineRenderer.SetPosition(i, _pathNavigationPoints[i].transform.position);
+            LineRenderer.SetPosition(i, new Vector3(_pathNavigationPoints[i].transform.position.x, 0.1f, _pathNavigationPoints[i].transform.position.z));
         }
     }
     public void AddNavigationPoints(List<Mark> marks)
@@ -87,5 +90,41 @@ public class CarAI : MonoBehaviour, IInjectable
         {
             _pathNavigationPoints.Add(mark);
         }
+    }
+    public void StartMooving()
+    {
+        Debug.Log("Скорость= " + _rigidbody.velocity.magnitude);
+        if (_markToMoove != null)
+        {
+            if (_lastMarkIndex != _pathNavigationPoints.Count)
+            {
+                Vector3 direction = _markToMoove.transform.position - gameObject.transform.position;
+                //Debug.Log(direction.magnitude + " Расстояние до точки");
+
+                if (direction.magnitude < 0.35f)
+                {
+                    if (_pathNavigationPoints.Count - 1 > _lastMarkIndex)
+                    {
+                        _lastMarkIndex++;
+                        _markToMoove = _pathNavigationPoints[_lastMarkIndex];
+                        direction = _markToMoove.transform.position - gameObject.transform.position;
+                    }
+                    else
+                    {
+                        Debug.Log("Доехал");
+                        _markToMoove = null;
+                    }
+                }
+                direction.Normalize();
+                _rigidbody.velocity = direction*2;
+
+            }
+
+        }
+    }
+
+    private void FixedUpdate()
+    {
+        StartMooving();
     }
 }
