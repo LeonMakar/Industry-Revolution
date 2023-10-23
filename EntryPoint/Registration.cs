@@ -5,6 +5,8 @@ public class Registration : MonoBehaviour
 {
     [SerializeField] private BilderSystem _bilderSystem;
     [SerializeField] private GameInputSystem _gameInputSystem;
+    [SerializeField] private HouseDisplay _houseDisplay;
+    [SerializeField] private CarAI _carAI;
 
     private IContainer _container = new Container();
     private GridSystem _grid;
@@ -23,16 +25,20 @@ public class Registration : MonoBehaviour
         _container.Register<Factory, RoadFactory>();
         _container.Register<Injector, Injector>();
         _container.Register<AStarSearchForCar, AStarSearchForCar>();
+        _container.Register<Global, Global>();
         //_container.Register<CarAI, CarAI>();
 
         _injector.AddExistingSingletoneService<Injector, Injector>(_injector);
         _injector.AddExistingSingletoneService<GridSystem, GridSystem>(_grid);
         _injector.AddExistingSingletoneService<BilderSystem, BilderSystem>(_bilderSystem);
+        _injector.AddExistingSingletoneService<HouseDisplay, HouseDisplay>(_houseDisplay);
+        _injector.AddExistingSingletoneService<CarAI, CarAI>(_carAI);
 
         _injector.BuildSingletoneService<Factory, RoadFactory>();
         _injector.BuildSingletoneService<AStarSearch, AStarSearch>();
         _injector.BuildSingletoneService<RoadFixer, RoadFixer>();
         _injector.BuildSingletoneService<EventBus, EventBus>();
+        _injector.BuildSingletoneService<Global, Global>();
         //_injector.BuildSingletoneService<AStarSearchForCar, AStarSearchForCar>();
         //_injector.BuildSingletoneService<CarAI, CarAI>();
 

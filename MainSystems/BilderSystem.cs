@@ -129,6 +129,11 @@ public class BilderSystem : MonoBehaviour, IInjectable, IService
                                 Grid[signal.position.x + i, signal.position.z + j].MakeNodeSetup(NodeType.Bilding);
                             }
                         }
+                        bilding.TryGetComponent(out HouseManipilation house);
+                        if (house != null)
+                        {
+                            house.SetHouseOnGround();
+                        }
                     }
                     else
                         Debug.Log("Path to Prefab is null");

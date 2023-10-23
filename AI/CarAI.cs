@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-public class CarAI : MonoBehaviour, IInjectable
+public class CarAI : MonoBehaviour, IInjectable, IService
 {
     private List<Vector3Int> _pathGridPoints = new();
     private List<Mark> _pathNavigationPoints = new();
@@ -14,10 +14,7 @@ public class CarAI : MonoBehaviour, IInjectable
 
     private AStarSearchForCar _aStar;
     private BilderSystem _bilderSystem;
-    [SerializeField] private Rigidbody _rigidbody;
 
-    public Vector3Int From;
-    public Vector3Int To;
 
     private int _lastMarkIndex;
     private Mark _markToMoove;
@@ -53,11 +50,11 @@ public class CarAI : MonoBehaviour, IInjectable
     }
 
     [ContextMenu("Debug")]
-    public void CreatPathGridPoints()
+    public void CreatPathGridPoints(Vector3Int from, Vector3Int to)
     {
         _pathGridPoints.Clear();
         _pathNavigationPoints.Clear();
-        _pathGridPoints = _aStar.FindPath(From, To);
+        _pathGridPoints = _aStar.FindPath(from, to);
         CreatNavigationPoints();
         gameObject.transform.position = new Vector3(_pathNavigationPoints[0].transform.position.x, 0.15f, _pathNavigationPoints[0].transform.position.x);
         _lastMarkIndex = 1;
@@ -84,6 +81,10 @@ public class CarAI : MonoBehaviour, IInjectable
             LineRenderer.SetPosition(i, new Vector3(_pathNavigationPoints[i].transform.position.x, 0.1f, _pathNavigationPoints[i].transform.position.z));
         }
     }
+    public void DeleteLine()
+    {
+        LineRenderer.positionCount = 0;
+    }
     public void AddNavigationPoints(List<Mark> marks)
     {
         foreach (var mark in marks)
@@ -91,40 +92,36 @@ public class CarAI : MonoBehaviour, IInjectable
             _pathNavigationPoints.Add(mark);
         }
     }
-    public void StartMooving()
-    {
-        Debug.Log("Скорость= " + _rigidbody.velocity.magnitude);
-        if (_markToMoove != null)
-        {
-            if (_lastMarkIndex != _pathNavigationPoints.Count)
-            {
-                Vector3 direction = _markToMoove.transform.position - gameObject.transform.position;
-                //Debug.Log(direction.magnitude + " Расстояние до точки");
+    //public void StartMooving()
+    //{
+    //    Debug.Log("Скорость= " + _rigidbody.velocity.magnitude);
+    //    if (_markToMoove != null)
+    //    {
+    //        if (_lastMarkIndex != _pathNavigationPoints.Count)
+    //        {
+    //            Vector3 direction = _markToMoove.transform.position - gameObject.transform.position;
+    //            //Debug.Log(direction.magnitude + " Расстояние до точки");
 
-                if (direction.magnitude < 0.35f)
-                {
-                    if (_pathNavigationPoints.Count - 1 > _lastMarkIndex)
-                    {
-                        _lastMarkIndex++;
-                        _markToMoove = _pathNavigationPoints[_lastMarkIndex];
-                        direction = _markToMoove.transform.position - gameObject.transform.position;
-                    }
-                    else
-                    {
-                        Debug.Log("Доехал");
-                        _markToMoove = null;
-                    }
-                }
-                direction.Normalize();
-                _rigidbody.velocity = direction*2;
+    //            if (direction.magnitude < 0.35f)
+    //            {
+    //                if (_pathNavigationPoints.Count - 1 > _lastMarkIndex)
+    //                {
+    //                    _lastMarkIndex++;
+    //                    _markToMoove = _pathNavigationPoints[_lastMarkIndex];
+    //                    direction = _markToMoove.transform.position - gameObject.transform.position;
+    //                }
+    //                else
+    //                {
+    //                    Debug.Log("Доехал");
+    //                    _markToMoove = null;
+    //                }
+    //            }
+    //            direction.Normalize();
+    //            _rigidbody.velocity = direction * 2;
 
-            }
+    //        }
 
-        }
-    }
+    //    }
+    //}
 
-    private void FixedUpdate()
-    {
-        StartMooving();
-    }
 }
