@@ -38,16 +38,21 @@ public class BilderSystem : MonoBehaviour, IInjectable, IService
 
     public void Inject(params IService[] services)
     {
-        //Grid = gridSystem;
-        //_roadFixer = roadFixer;
-        //_eventBus = eventBus;
-    }
-    public void InjectSingletone(GridSystem gridSystem, RoadFixer roadFixer, EventBus eventBus)
-    {
-        Grid = gridSystem;
-        _roadFixer = roadFixer;
-        _eventBus = eventBus;
-
+        foreach (var service in services)
+        {
+            switch (service.GetType().Name)
+            {
+                case nameof(GridSystem):
+                    Grid = (GridSystem)service;
+                    break;
+                case nameof(RoadFixer):
+                    _roadFixer = (RoadFixer)service;
+                    break;
+                case nameof(EventBus):
+                    _eventBus = (EventBus)service;
+                    break;
+            }
+        }
         _eventBus.Subscrube<MouseIsClickedSignal>(BildRoadWhenClick);
         _eventBus.Subscrube<MouseIsClickedSignal>(BildBildingWhenClick);
         _eventBus.Subscrube<MouseIsHoldSignal>(BildRoadWhenHold);

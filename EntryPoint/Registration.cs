@@ -1,4 +1,3 @@
-using Unity.VisualScripting;
 using UnityEngine;
 
 public class Registration : MonoBehaviour
@@ -26,9 +25,9 @@ public class Registration : MonoBehaviour
         _container.Register<Injector, Injector>();
         _container.Register<AStarSearchForCar, AStarSearchForCar>();
         _container.Register<Global, Global>();
-        //_container.Register<CarAI, CarAI>();
 
         _injector.AddExistingSingletoneService<Injector, Injector>(_injector);
+        _injector.AddExistingSingletoneService<GameInputSystem, GameInputSystem>(_gameInputSystem);
         _injector.AddExistingSingletoneService<GridSystem, GridSystem>(_grid);
         _injector.AddExistingSingletoneService<BilderSystem, BilderSystem>(_bilderSystem);
         _injector.AddExistingSingletoneService<HouseDisplay, HouseDisplay>(_houseDisplay);
@@ -39,15 +38,21 @@ public class Registration : MonoBehaviour
         _injector.BuildSingletoneService<RoadFixer, RoadFixer>();
         _injector.BuildSingletoneService<EventBus, EventBus>();
         _injector.BuildSingletoneService<Global, Global>();
-        //_injector.BuildSingletoneService<AStarSearchForCar, AStarSearchForCar>();
-        //_injector.BuildSingletoneService<CarAI, CarAI>();
 
 
-        _injector.InjectingSingletoneServices<BilderSystem>(_bilderSystem);
-        _injector.InjectingSingletoneServices<RoadFixer>(_injector.GetSingletoneService<RoadFixer, RoadFixer>());
-        _injector.InjectingSingletoneServices<GameInputSystem>(_gameInputSystem);
-        //_injector.GetSingletoneService<CarAI, CarAI>().Injecting(_injector);
+        InitInjectableSingletoneServices();
 
     }
-
+    public void InitInjectableSingletoneServices()
+    {
+        foreach (var service in _injector.SingletonServices)
+        {
+            if (service.Value is IInjectable)
+            {
+                var injectableObject = service.Value as IInjectable;
+                injectableObject.Injecting();
+            }
+        }
+    }
 }
+

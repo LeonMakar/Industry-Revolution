@@ -17,7 +17,7 @@ public class HouseManipilation : MonoBehaviour, IInjectable
         set => _display.SetOnDisplayEndPoint(value);
     }
 
-
+    private Dictionary<int, List<Mark>> _paths;
     private bool _isPlaced = false;
 
 
@@ -30,25 +30,22 @@ public class HouseManipilation : MonoBehaviour, IInjectable
 
     public void Inject(params IService[] services)
     {
-        IEnumerable<IService> findService;
         foreach (var service in services)
         {
             switch (service.GetType().Name)
             {
                 case nameof(Global):
-                    findService = services.Where(t => t.GetType() == typeof(Global));
-                    _global = (Global)findService.First();
+                    _global = (Global)service;
                     break;
                 case nameof(HouseDisplay):
-                    findService = services.Where(t => t.GetType() == typeof(HouseDisplay));
-                    _display = (HouseDisplay)findService.First();
+                    _display = (HouseDisplay)service;
                     break;
             }
         }
     }
     private void Start()
     {
-        Injector.Instance.Init(this);
+        this.Injecting();
     }
 
     public void SetHouseOnGround()

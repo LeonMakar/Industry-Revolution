@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -6,13 +8,36 @@ using UnityEngine.UIElements;
 /// <summary>
 /// Need to Inject => RoadFactory,BilderSystem
 /// </summary>
-public class RoadFixer : IService
+public class RoadFixer : IService, IInjectable
 {
     private Factory _bilder;
-    private Dictionary<string, NodeData> _roadNeighbors = new Dictionary<string, NodeData>();
-    public Dictionary<string, NodeData> RoadNeighbors => _roadNeighbors;
     BilderSystem _bilderSystem;
 
+    private Dictionary<string, NodeData> _roadNeighbors = new Dictionary<string, NodeData>();
+    public Dictionary<string, NodeData> RoadNeighbors => _roadNeighbors;
+
+    public Dictionary<Type, Type> ServiceAndImplamentation { get; } = new Dictionary<Type, Type>()
+    {
+        [typeof(Factory)] = typeof(RoadFactory),
+        [typeof(BilderSystem)] = typeof(BilderSystem),
+
+    };
+
+    public void Inject(params IService[] services)
+    {
+        foreach (var service in services)
+        {
+            switch (service.GetType().Name)
+            {
+                case nameof(RoadFactory):
+                    _bilder = (Factory)service;
+                    break;
+                case nameof(BilderSystem):
+                    _bilderSystem = (BilderSystem)service;
+                    break;
+            }
+        }
+    }
 
     public void InjectSingletone(Factory factory, BilderSystem bilderSystem)
     {
@@ -128,8 +153,10 @@ public class RoadFixer : IService
         else
             _bilderSystem.AllRoads[new Vector3Int(positionX, 0, positionZ)].GetComponentInChildren<FixTransform>().FixRotation(nodeRotation);
 
-            _bilderSystem.SetRoadMarksPositions(roadGameObject);
+        _bilderSystem.SetRoadMarksPositions(roadGameObject);
     }
+
+
 }
 
 

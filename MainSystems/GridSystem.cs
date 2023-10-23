@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class GridSystem : IMainService
+public class GridSystem : IMainService,IService
 {
     public static GridSystem Instance { get; private set; }
 

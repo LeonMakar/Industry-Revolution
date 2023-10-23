@@ -27,30 +27,26 @@ public class CarAI : MonoBehaviour, IInjectable, IService
     };
     public void Inject(params IService[] services)
     {
-        IEnumerable<IService> findService;
         foreach (var service in services)
         {
             switch (service.GetType().Name)
             {
                 case nameof(AStarSearchForCar):
-                    findService = services.Where(t => t.GetType() == typeof(AStarSearchForCar));
-                    _aStar = (AStarSearchForCar)findService.First();
+                    _aStar = (AStarSearchForCar)service;
                     break;
                 case nameof(BilderSystem):
-                    findService = services.Where(t => t.GetType() == typeof(BilderSystem));
-                    _bilderSystem = (BilderSystem)findService.First();
-                    Debug.Log(_bilderSystem.GetType().Name);
+                    _bilderSystem = (BilderSystem)service;
                     break;
             }
         }
     }
     private void Start()
     {
-        Injector.Instance.Init(this);
+        //this.Injecting();
     }
 
     [ContextMenu("Debug")]
-    public void CreatPathGridPoints(Vector3Int from, Vector3Int to)
+    public List<Mark> CreatPathGridPoints(Vector3Int from, Vector3Int to)
     {
         _pathGridPoints.Clear();
         _pathNavigationPoints.Clear();
@@ -59,6 +55,7 @@ public class CarAI : MonoBehaviour, IInjectable, IService
         gameObject.transform.position = new Vector3(_pathNavigationPoints[0].transform.position.x, 0.15f, _pathNavigationPoints[0].transform.position.x);
         _lastMarkIndex = 1;
         _markToMoove = _pathNavigationPoints[_lastMarkIndex];
+        return _pathNavigationPoints;
     }
 
     public void CreatNavigationPoints()

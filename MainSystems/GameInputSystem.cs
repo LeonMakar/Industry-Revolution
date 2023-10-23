@@ -1,9 +1,11 @@
-﻿using UnityEngine;
+﻿using System;
+using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.EventSystems;
 /// <summary>
 /// Need to Inject => EventBus, AStarSearch
 /// </summary>
-public class GameInputSystem : MonoBehaviour
+public class GameInputSystem : MonoBehaviour, IInjectable
 {
     [SerializeField] private Camera _cameraMain;
     [SerializeField] private LayerMask _layerMask;
@@ -22,10 +24,27 @@ public class GameInputSystem : MonoBehaviour
     private Vector2 _cameraMovementVector;
     public Vector2 CameraMovementVector => _cameraMovementVector;
 
-    public void InjectSingletone(EventBus eventBus,AStarSearch aStarSearch)
+    public Dictionary<Type, Type> ServiceAndImplamentation { get; } = new Dictionary<Type, Type>()
     {
-        _eventBus = eventBus;
-        _aStarSearch = aStarSearch ;
+        [typeof(EventBus)] = typeof(EventBus),
+        [typeof(AStarSearch)] = typeof(AStarSearch),
+
+    };
+
+    public void Inject(params IService[] services)
+    {
+        foreach (var service in services)
+        {
+            switch (service.GetType().Name)
+            {
+                case nameof(EventBus):
+                    _eventBus = (EventBus)service;
+                    break;
+                case nameof(AStarSearch):
+                    _aStarSearch = (AStarSearch)service;
+                    break;
+            }
+        }
         _eventBus.Subscrube<MousePositionSignal>(CursorPosition);
     }
 
@@ -143,5 +162,7 @@ public class GameInputSystem : MonoBehaviour
             _eventBus.Invoke<MouseIsUpSignal>(new MouseIsUpSignal());
         }
     }
+
+
 }
 

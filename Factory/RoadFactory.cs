@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-public class RoadFactory : Factory
+public class RoadFactory : Factory, IService
 {
 
     public override GameObject Bild(BildingType roadType)

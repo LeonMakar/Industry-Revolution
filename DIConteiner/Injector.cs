@@ -12,7 +12,7 @@ public class Injector
     }
 
     public static Injector Instance;
-    private Dictionary<Type, object> _singletonServices = new Dictionary<Type, object>();
+    public Dictionary<Type, object> SingletonServices { get; } = new Dictionary<Type, object>();
 
     //private Dictionary<Type, object> _temporaryServices = new Dictionary<Type, object>();
 
@@ -20,68 +20,30 @@ public class Injector
 
     private Dictionary<Type, Dictionary<Type, object>> _temporaryServices = new Dictionary<Type, Dictionary<Type, object>>();
 
-    public void Init(IInjectable injectableObject)
+    public void Init(object service)
     {
-        injectableObject.Injecting(this);
+        if (service is IInjectable)
+        {
+            var injectableObject = (IInjectable)service;
+            injectableObject.Injecting();
+        }
     }
     public bool CheckAvailabilitySingletoneServiceInInjector(Type type)
     {
-        if (_singletonServices.ContainsKey(type))
+        if (SingletonServices.ContainsKey(type))
             return true;
         else return false;
-    }
-
-    public void InjectingTemporaryServices<TImplamentationTypeWhoNeedInjection>(object serviceWhoNeedInjection, params Type[] typesOfImplamentation)
-    {
-
-        var method = typeof(TImplamentationTypeWhoNeedInjection).GetMethod(nameof(Methodname.InjectTemporary));
-        var parameters = method.GetParameters();
-        var arguments = new object[parameters.Length];
-        if (typesOfImplamentation.Length == parameters.Length)
-            for (int i = 0; i < parameters.Length; i++)
-            {
-                var parameterIType = parameters[i].ParameterType;
-
-                if (_temporaryServices.ContainsKey(parameterIType))
-                {
-                    if (_temporaryServices[parameterIType].ContainsKey(typesOfImplamentation[i]))
-                        arguments[i] = _temporaryServices[parameterIType][typesOfImplamentation[i]];
-                }
-                else
-                    throw new InvalidOperationException($"{parameterIType} or {typesOfImplamentation[i]} dosnt builded in some container");
-            }
-        else
-            throw new InvalidOperationException($"Length of parametrs for {typeof(TImplamentationTypeWhoNeedInjection)} in Inject method dosnt match with Injecting params lengh");
-
-
-        method.Invoke(serviceWhoNeedInjection, arguments);
-    }
-    public void InjectingSingletoneServices<TImplamentationWhoNeedInjection>(object someObject)
-    {
-
-        var method = typeof(TImplamentationWhoNeedInjection).GetMethod(nameof(Methodname.InjectSingletone));
-        var parameters = method.GetParameters();
-        var arguments = new object[parameters.Length];
-        for (int i = 0; i < parameters.Length; i++)
-        {
-            var parameterIType = parameters[i].ParameterType;
-            if (_singletonServices.ContainsKey(parameterIType))
-                arguments[i] = _singletonServices[parameterIType];
-            else
-                throw new InvalidOperationException($"{parameterIType} dosnt builded in singletone container");
-        }
-
-        method.Invoke(someObject, arguments);
     }
 
 
     public void BuildSingletoneService<TService, TImplamentation>(params Type[] typesToResolve) where TImplamentation : TService
     {
-
-        if (_singletonServices.ContainsKey(typeof(TService)))
+        if (SingletonServices.ContainsKey(typeof(TService)))
             throw new InvalidOperationException($"{typeof(TImplamentation)} almost exist in Dictionary");
         else
-            _singletonServices[typeof(TService)] = _container.Resolve<TService, TImplamentation>(typesToResolve);
+        {
+            SingletonServices[typeof(TService)] = _container.Resolve<TService, TImplamentation>(typesToResolve);
+        }
     }
     public object Resolve(Type serviceType, Type implamentationType, params Type[] typesToInject)
     {
@@ -105,10 +67,10 @@ public class Injector
 
     public void AddExistingSingletoneService<TService, TImplamentation>(object currentObject) where TImplamentation : TService
     {
-        if (_singletonServices.ContainsKey(typeof(TService)))
+        if (SingletonServices.ContainsKey(typeof(TService)))
             throw new InvalidOperationException($"{typeof(TImplamentation)} almost exist in Dictionary");
         else
-            _singletonServices[typeof(TService)] = currentObject;
+            SingletonServices[typeof(TService)] = currentObject;
     }
     public void AddExistingTemporaryService<TService, TImplamentation>(object currentObject) where TImplamentation : TService
     {
@@ -127,15 +89,15 @@ public class Injector
 
     public TService GetSingletoneService<TService, TImplamentation>() where TImplamentation : TService
     {
-        if (_singletonServices.ContainsKey(typeof(TService)))
-            return (TService)_singletonServices[typeof(TService)];
+        if (SingletonServices.ContainsKey(typeof(TService)))
+            return (TService)SingletonServices[typeof(TService)];
         else
             throw new InvalidOperationException($"{typeof(TService)} dosnt register in singletone dictionary for {typeof(TImplamentation)}");
     }
     public object GetSingletoneService(Type service)
     {
-        if (_singletonServices.ContainsKey(service))
-            return _singletonServices[service];
+        if (SingletonServices.ContainsKey(service))
+            return SingletonServices[service];
         else
             throw new InvalidOperationException($"{service} dosnt register in singletone dictionary for {service}");
     }
@@ -180,8 +142,9 @@ public class Injector
 
 public static class InjectorExtansions
 {
-    public static IInjectable Injecting(this IInjectable currentService, Injector injector)
+    public static IInjectable Injecting(this IInjectable currentService)
     {
+        Injector injector = Injector.Instance;
         List<IService> services = new List<IService>();
         foreach (var service in currentService.ServiceAndImplamentation)
         {
@@ -199,10 +162,14 @@ public static class InjectorExtansions
     }
 }
 
+
 public interface IInjectable
 {
     //Словарь с тем что ему требуется для инжекта которой в послудующем будет использлваться для статическом расширении Inject\
 
+    /// <summary>
+    /// Services and Implamentation that objects needs to inject on they classes
+    /// </summary>
     Dictionary<Type, Type> ServiceAndImplamentation { get; }
     public void Inject(params IService[] services);
 }

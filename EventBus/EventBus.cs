@@ -4,7 +4,7 @@ using UnityEngine;
 /// <summary>
 /// Реализация паттерна сигнальная шина
 /// </summary>
-public class EventBus : IMainService, IEventBus
+public class EventBus : IMainService, IService
 {
     private Dictionary<string, List<object>> _signalCallbacks = new Dictionary<string, List<object>>();
 
@@ -44,8 +44,4 @@ public class EventBus : IMainService, IEventBus
         else
             Debug.LogErrorFormat("Trying to unsubscribe for not existing key! {0} ", key);
     }
-}
-public interface IEventBus
-{
-
 }
