@@ -46,4 +46,5 @@ public enum BildingType
     Bilding = 6,
     District = 7,
     City = 8,
+    CanvasHouse = 0,
 }

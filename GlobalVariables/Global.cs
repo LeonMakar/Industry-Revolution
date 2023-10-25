@@ -7,6 +7,7 @@ public class Global : IInjectable, IService
 {
     private bool _houseIsReadyToBeEndPoint;
     public bool HouseIsReadyToBeEndPoint => _houseIsReadyToBeEndPoint;
+    public int Deveation = 0;
 
     private HouseManipilation _houseManipulation;
 
@@ -18,7 +19,10 @@ public class Global : IInjectable, IService
     public void Inject(params IService[] services)
     {
     }
-
+    public void Test()
+    {
+        Debug.Log("Εσϋε άτϋϋτοσ");
+    }
     public void SetEditableHouse(HouseManipilation house)
     {
         _houseManipulation = house;

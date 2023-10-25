@@ -138,6 +138,7 @@ public class BilderSystem : MonoBehaviour, IInjectable, IService
                         if (house != null)
                         {
                             house.SetHouseOnGround();
+                            house.Injecting();
                         }
                     }
                     else

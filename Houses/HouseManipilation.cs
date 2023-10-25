@@ -8,6 +8,7 @@ public class HouseManipilation : MonoBehaviour, IInjectable
 {
     private HouseDisplay _display;
     private Global _global;
+    private Factory _canvasBuilder;
 
     [SerializeField] private GameObject _housePositionForCar;
 
@@ -24,7 +25,7 @@ public class HouseManipilation : MonoBehaviour, IInjectable
     public Dictionary<Type, Type> ServiceAndImplamentation { get; } = new Dictionary<Type, Type>
     {
         [typeof(Global)] = typeof(Global),
-        [typeof(HouseDisplay)] = typeof(HouseDisplay),
+        [typeof(Factory)] = typeof(CanvasFactory),
 
     };
 
@@ -37,15 +38,11 @@ public class HouseManipilation : MonoBehaviour, IInjectable
                 case nameof(Global):
                     _global = (Global)service;
                     break;
-                case nameof(HouseDisplay):
-                    _display = (HouseDisplay)service;
+                case nameof(CanvasFactory):
+                    _canvasBuilder = (CanvasFactory)service;
                     break;
             }
         }
-    }
-    private void Start()
-    {
-        this.Injecting();
     }
 
     public void SetHouseOnGround()
@@ -61,10 +58,19 @@ public class HouseManipilation : MonoBehaviour, IInjectable
     {
         if (_isPlaced && !_global.HouseIsReadyToBeEndPoint)
         {
-            _display.gameObject.SetActive(true);
-            _display.RefreshAllInformation(CurrentPosition, this);
+            _display = _canvasBuilder.Bild(BildingType.CanvasHouse).GetComponentInChildren<HouseDisplay>();
+            if (_display != null)
+            {
+                _display.transform.position =
+                    new Vector3(_display.transform.position.x + _global.Deveation, _display.transform.position.y, _display.transform.position.z);
+                _display.Injecting();
+                _display.RefreshAllInformation(CurrentPosition, this);
+                _global.Deveation += 100;
+            }
+            else
+                Debug.Log("Нет дисплея ");
         }
-        if (_global.HouseIsReadyToBeEndPoint)
+        if (_isPlaced && _global.HouseIsReadyToBeEndPoint)
         {
             _global.SetNewLastBuilding(CurrentPosition);
             _global.SetHousesAsUnreadyToBeEndPoint();

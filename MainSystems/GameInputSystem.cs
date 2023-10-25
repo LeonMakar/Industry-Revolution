@@ -60,9 +60,16 @@ public class GameInputSystem : MonoBehaviour, IInjectable
         CheckMouseButtonIsUp();
         ResetObjectUnderCursor();
         CheckArrowInput();
+        RotateBilding();
         _cameraMovement.MoveCamera(new Vector3(_cameraMovementVector.x, 0, _cameraMovementVector.y));
     }
-
+    private void RotateBilding()
+    {
+        if (_objectUnderCursor != null && Input.GetKeyDown(KeyCode.R))
+        {
+            _objectUnderCursor.gameObject.transform.Rotate(0, 90, 0);
+        }
+    }
     private void CheckArrowInput()
     {
         _cameraMovementVector = new Vector2(Input.GetAxis("Horizontal"), Input.GetAxis("Vertical"));
