@@ -144,9 +144,7 @@ public static class InjectorExtansions
         foreach (var service in currentService.ServiceAndImplamentation)
         {
             if (injector.CheckAvailabilitySingletoneServiceInInjector(service.Key))
-            {
                 services.Add((IService)injector.GetSingletoneService(service.Key));
-            }
             else
             {
                 if (injector.CheckAvailabilityRepeatedServiceInInjector(service.Key, service.Value))

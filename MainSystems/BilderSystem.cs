@@ -24,6 +24,7 @@ public class BilderSystem : MonoBehaviour, IInjectable, IService
     private Factory _bilder;
     private RoadFixer _roadFixer;
     private EventBus _eventBus;
+    private Cursor _cursor;
 
 
     public List<Vector3Int> RoadsToRecheck => _roadsToRecheck;
@@ -32,7 +33,8 @@ public class BilderSystem : MonoBehaviour, IInjectable, IService
     {
         [typeof(GridSystem)] = typeof(GridSystem),
         [typeof(RoadFixer)] = typeof(RoadFixer),
-        [typeof(EventBus)] = typeof(EventBus)
+        [typeof(EventBus)] = typeof(EventBus),
+        [typeof(Cursor)] = typeof(Cursor)
     };
 
 
@@ -51,6 +53,10 @@ public class BilderSystem : MonoBehaviour, IInjectable, IService
                 case nameof(EventBus):
                     _eventBus = (EventBus)service;
                     break;
+                case nameof(Cursor):
+                    _cursor = (Cursor)service;
+                    break;
+
             }
         }
         _eventBus.Subscrube<MouseIsClickedSignal>(BildRoadWhenClick);
@@ -93,29 +99,44 @@ public class BilderSystem : MonoBehaviour, IInjectable, IService
         if (_selectedObjectData != null)
             if (_selectedObjectData.SelectedObjectStructureType == StructureType.Bilding)
             {
-                for (int i = 0; i < _selectedObjectData.BildingSize.x; i++)
+                if (!_selectedObjectData.IsNotSemmetric)
                 {
-                    for (int j = 0; j < _selectedObjectData.BildingSize.y; j++)
+                    for (int i = 0; i < _selectedObjectData.BildingSize.x; i++)
                     {
-                        if (signal.position != null)
+                        for (int j = 0; j < _selectedObjectData.BildingSize.y; j++)
                         {
-                            if (CheckThatIsNodeFree(signal.position.x + i, signal.position.z + j))
-                                canBild = true;
+                            if (signal.position != null)
+                            {
+                                if (CheckThatIsNodeFree(signal.position.x + i, signal.position.z + j))
+                                    canBild = true;
+                                else
+                                {
+                                    canBild = false;
+                                    Debug.Log("Node is not Empty");
+                                    return;
+                                }
+                            }
                             else
                             {
-                                canBild = false;
-                                Debug.Log("Node is not Empty");
+                                Debug.Log("signal is null");
                                 return;
                             }
                         }
+                    }
+                }
+                else
+                {
+                    foreach (var cells in _selectedObjectData.CellsPosition)
+                    {
+                        if (CheckThatIsNodeFree(Mathf.FloorToInt(cells.transform.position.x), Mathf.FloorToInt(cells.transform.position.z)))
+                            canBild = true;
                         else
                         {
-                            Debug.Log("signal is null");
+                            canBild = false;
                             return;
                         }
                     }
                 }
-
                 if (canBild)
                 {
                     _bilder = new BildingFactory();
@@ -125,21 +146,29 @@ public class BilderSystem : MonoBehaviour, IInjectable, IService
                         bilder.PathForBildingPrefab = _selectedObjectData.PathToPrefab;
                         GameObject bilding = bilder.Bild(BildingType.Bilding);
                         bilding.transform.position = signal.position;
+                        bilding.TryGetComponent<ObjectDataForBilding>(out ObjectDataForBilding bildingData);
+                        bildingData?.BildingPrefab.transform.Rotate(0, _selectedObjectData.RotationAngle, 0);
+                        if (!Input.GetKey(KeyCode.LeftShift))
+                            _cursor.ResetObjectUnderCursor();
 
-
-                        for (int i = 0; i < _selectedObjectData.BildingSize.x; i++)
-                        {
-                            for (int j = 0; j < _selectedObjectData.BildingSize.y; j++)
+                        if (!bildingData.IsNotSemmetric)
+                            for (int i = 0; i < _selectedObjectData.BildingSize.x; i++)
                             {
-                                Grid[signal.position.x + i, signal.position.z + j].MakeNodeSetup(NodeType.Bilding);
+                                for (int j = 0; j < _selectedObjectData.BildingSize.y; j++)
+                                {
+                                    Grid[signal.position.x + i, signal.position.z + j].MakeNodeSetup(NodeType.Bilding);
+                                }
+                            }
+                        else
+                        {
+                            foreach (var cell in _selectedObjectData.CellsPosition)
+                            {
+                                Grid[Mathf.FloorToInt(cell.transform.position.x), Mathf.FloorToInt(cell.transform.position.z)].MakeNodeSetup(NodeType.Bilding);
                             }
                         }
                         bilding.TryGetComponent(out HouseManipilation house);
-                        if (house != null)
-                        {
-                            house.SetHouseOnGround();
-                            house.Injecting();
-                        }
+                        house?.SetHouseOnGround();
+                        house?.Injecting();
                     }
                     else
                         Debug.Log("Path to Prefab is null");

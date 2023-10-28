@@ -56,7 +56,7 @@ public class HouseManipilation : MonoBehaviour, IInjectable
     // Ui Displaing
     private void OnMouseDown()
     {
-        if (_isPlaced && !_global.HouseIsReadyToBeEndPoint)
+        if (_isPlaced && !_global.HouseIsReadyToBeEndPoint && Cursor.CursorIsEmpty)
         {
             _display = _canvasBuilder.Bild(BildingType.CanvasHouse).GetComponentInChildren<HouseDisplay>();
             if (_display != null)
