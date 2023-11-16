@@ -14,9 +14,11 @@ public class ObjectDataForBilding : MonoBehaviour
 
     public IService service;
     public int RotationAngle { get; private set; }
+    public Vector3 EulerAngle { get; private set; }
 
-    [SerializeField] private GameObject _bildingPrefab;
-    public GameObject BildingPrefab => _bildingPrefab;
+    [SerializeField] private GameObject _bildingPrefabForRotate;
+    public GameObject BildingPrefabForRotate => _bildingPrefabForRotate;
+
 
     [System.Serializable]
     public struct Size
@@ -30,10 +32,10 @@ public class ObjectDataForBilding : MonoBehaviour
 
     public void ChangeBildingRotation()
     {
-        if (_bildingPrefab != null)
+        if (_bildingPrefabForRotate != null)
         {
-            _bildingPrefab.transform.Rotate(0, 90, 0);
             RotationAngle += 90;
+            _bildingPrefabForRotate.transform.Rotate(Vector3.forward, 90);
         }
     }
 }

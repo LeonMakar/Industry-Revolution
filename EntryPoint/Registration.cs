@@ -4,18 +4,18 @@ public class Registration : MonoBehaviour
 {
     [SerializeField] private BilderSystem _bilderSystem;
     [SerializeField] private GameInputSystem _gameInputSystem;
-    //[SerializeField] private HouseDisplay _houseDisplay;
+    [SerializeField] private LineManager _lineManager;
     [SerializeField] private CarAI _carAI;
     [SerializeField] private Cursor _cursor;
+    [SerializeField] private AddRootScript _addRootScript;
 
     private IContainer _container = new Container();
-    private GridSystem _grid;
+    private GridSystem _grid = new(100, 100);
 
     private Injector _injector;
 
     private void Awake()
     {
-        _grid = new GridSystem(50, 50);
         _injector = new Injector(_container);
         Injector.Instance = _injector;
 
@@ -34,6 +34,9 @@ public class Registration : MonoBehaviour
         _injector.AddExistingSingletoneService<BilderSystem, BilderSystem>(_bilderSystem);
         _injector.AddExistingSingletoneService<CarAI, CarAI>(_carAI);
         _injector.AddExistingSingletoneService<Cursor, Cursor>(_cursor);
+        _injector.AddExistingSingletoneService<LineManager, LineManager>(_lineManager);
+        _injector.AddExistingSingletoneService<AddRootScript, AddRootScript>(_addRootScript);
+
 
         _injector.BuildSingletoneService<AStarSearch, AStarSearch>();
         _injector.BuildSingletoneService<RoadFixer, RoadFixer>();

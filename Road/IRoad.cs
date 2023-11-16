@@ -6,5 +6,6 @@ public interface IRoad
 {
 
     public List<Mark> Getpath(Vector3Int from,Vector3Int to);
-    public void SetConnectionToRoadInfo(RoadInfo roadInfo);
+    public void SetLastMarksPosition();
+    public void SetConnectionToRoadInfo();
 }

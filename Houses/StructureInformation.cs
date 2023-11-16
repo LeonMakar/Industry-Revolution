@@ -4,19 +4,15 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-public class HouseManipilation : MonoBehaviour, IInjectable
+public class StructureInformation : MonoBehaviour, IInjectable
 {
     private HouseDisplay _display;
     private Global _global;
-    private Factory _canvasBuilder;
+    private EventBus _eventBus;
 
     [SerializeField] private GameObject _housePositionForCar;
 
     public Vector3Int CurrentPosition;
-    public Vector3Int LastPositionForAi
-    {
-        set => _display.SetOnDisplayEndPoint(value);
-    }
 
     private Dictionary<int, List<Mark>> _paths;
     private bool _isPlaced = false;
@@ -25,7 +21,7 @@ public class HouseManipilation : MonoBehaviour, IInjectable
     public Dictionary<Type, Type> ServiceAndImplamentation { get; } = new Dictionary<Type, Type>
     {
         [typeof(Global)] = typeof(Global),
-        [typeof(Factory)] = typeof(CanvasFactory),
+        [typeof(EventBus)] = typeof(EventBus),
 
     };
 
@@ -38,8 +34,8 @@ public class HouseManipilation : MonoBehaviour, IInjectable
                 case nameof(Global):
                     _global = (Global)service;
                     break;
-                case nameof(CanvasFactory):
-                    _canvasBuilder = (CanvasFactory)service;
+                case nameof(EventBus):
+                    _eventBus = (EventBus)service;
                     break;
             }
         }
@@ -50,30 +46,20 @@ public class HouseManipilation : MonoBehaviour, IInjectable
         CurrentPosition = new Vector3Int(Mathf.FloorToInt(_housePositionForCar.transform.position.x), 0, Mathf.FloorToInt(_housePositionForCar.transform.position.z));
         _housePositionForCar.SetActive(false);
         _isPlaced = true;
+        IInjectable init = this;
+        init.Injecting();
     }
 
 
     // Ui Displaing
     private void OnMouseDown()
     {
-        if (_isPlaced && !_global.HouseIsReadyToBeEndPoint && Cursor.CursorIsEmpty)
+        if (_isPlaced && _global.CreateRootPointIsActive && Cursor.CursorIsEmpty)
         {
-            _display = _canvasBuilder.Bild(BildingType.CanvasHouse).GetComponentInChildren<HouseDisplay>();
-            if (_display != null)
-            {
-                _display.transform.position =
-                    new Vector3(_display.transform.position.x + _global.Deveation, _display.transform.position.y, _display.transform.position.z);
-                _display.Injecting();
-                _display.RefreshAllInformation(CurrentPosition, this);
-                _global.Deveation += 100;
-            }
-            else
-                Debug.Log("Нет дисплея ");
+            _eventBus.Invoke(new StructureAddedForRootSignal(this));
         }
-        if (_isPlaced && _global.HouseIsReadyToBeEndPoint)
+        if (_isPlaced && _global.CreateRootPointIsActive)
         {
-            _global.SetNewLastBuilding(CurrentPosition);
-            _global.SetHousesAsUnreadyToBeEndPoint();
         }
     }
 

@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class RoadInfoHorizontal : MonoBehaviour, IRoad
+public class RoadInfoHorizontal : RoadInfo
 {
     [SerializeField] private List<Mark> _roadPointsLeft;
     [SerializeField] private List<Mark> _roadPointsRight;
@@ -13,13 +13,13 @@ public class RoadInfoHorizontal : MonoBehaviour, IRoad
     public Vector3Int pathToRight;
 
 
-    public void SetDirectionToDiffrentPath()
+    public override void SetLastMarksPosition()
     {
-        pathToLeft = new Vector3Int(Mathf.RoundToInt(_transform.position.x) - 1, 0, Mathf.RoundToInt(_transform.position.z));
-        pathToRight = new Vector3Int(Mathf.RoundToInt(_transform.position.x) + 1, 0, Mathf.RoundToInt(_transform.position.z));
+        pathToLeft = new Vector3Int(Mathf.FloorToInt(_transform.position.x) - 1, 0, Mathf.FloorToInt(_transform.position.z) );
+        pathToRight = new Vector3Int(Mathf.FloorToInt(_transform.position.x) + 1, 0, Mathf.FloorToInt(_transform.position.z) );
     }
 
-    public List<Mark> Getpath(Vector3Int from, Vector3Int to)
+    public  override List<Mark> Getpath(Vector3Int from, Vector3Int to)
     {
         if (to == pathToLeft)
             return _roadPointsLeft;
@@ -29,8 +29,8 @@ public class RoadInfoHorizontal : MonoBehaviour, IRoad
         throw new System.Exception($"Vector {from} and {to} dosnt compare if some path (horizontal)");
     }
 
-    public void SetConnectionToRoadInfo(RoadInfo roadInfo)
-    {
-        roadInfo.SetConnection(this);
-    }
+    //public void SetConnectionToRoadInfo()
+    //{
+    //   SetConnection(this);
+    //}
 }

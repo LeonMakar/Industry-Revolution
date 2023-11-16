@@ -127,6 +127,8 @@ public class GameInputSystem : MonoBehaviour, IInjectable
         if (Input.GetMouseButtonUp(0) && EventSystem.current.IsPointerOverGameObject() == false)
         {
             _eventBus.Invoke<MouseIsUpSignal>(new MouseIsUpSignal());
+
+
         }
     }
 

@@ -13,6 +13,8 @@ public class CameraMovement : MonoBehaviour
     {
         var movementVector = Quaternion.Euler(0, 0, 0) * inputVector;
         gameCamera.transform.position += movementVector * Time.deltaTime * cameraMovementSpeed;
+
+
     }
 
 }

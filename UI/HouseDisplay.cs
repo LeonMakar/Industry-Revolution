@@ -4,7 +4,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
-public class HouseDisplay : MonoBehaviour, IInjectable, IService, IDragHandler
+public class HouseDisplay : MonoBehaviour, IInjectable, IService
 {
     [SerializeField] private TextMeshProUGUI _textStart;
     [SerializeField] private TextMeshProUGUI _textEndPoint;
@@ -14,7 +14,7 @@ public class HouseDisplay : MonoBehaviour, IInjectable, IService, IDragHandler
 
 
     private Global _global;
-    private HouseManipilation _currentHouse;
+    private StructureInformation _currentHouse;
     private CarAI _carAI;
 
 
@@ -41,27 +41,5 @@ public class HouseDisplay : MonoBehaviour, IInjectable, IService, IDragHandler
             }
         }
     }
-
-    public void RefreshAllInformation(Vector3Int startPosition, HouseManipilation currentHouse)
-    {
-        _startPosition = startPosition;
-        _currentHouse = currentHouse;
-        _global.SetEditableHouse(currentHouse);
-        _textStart.text = $"Start = {_startPosition}";
-        _textEndPoint.text = $"EndPoint = --- ";
-        _carAI.DeleteLine();
-    }
-    public void SetOnDisplayEndPoint(Vector3Int endPoint)
-    {
-        _textEndPoint.text = $"EndPoint = {endPoint}";
-        _carAI.CreatPathGridPoints(_startPosition, endPoint);
-    }
-
-    public void DestroyGameObject()
-    {
-        Destroy(transform.parent.gameObject);
-    }
-    public void StartAddGoalHouse() => _global.SetHousesAsReadyToBeEndPoint();
-    public void OnDrag(PointerEventData eventData) => transform.position = eventData.position;
 
 }

@@ -147,7 +147,8 @@ public class BilderSystem : MonoBehaviour, IInjectable, IService
                         GameObject bilding = bilder.Bild(BildingType.Bilding);
                         bilding.transform.position = signal.position;
                         bilding.TryGetComponent<ObjectDataForBilding>(out ObjectDataForBilding bildingData);
-                        bildingData?.BildingPrefab.transform.Rotate(0, _selectedObjectData.RotationAngle, 0);
+                        bildingData.BildingPrefabForRotate.transform.Rotate(Vector3.forward, _selectedObjectData.RotationAngle);
+
                         if (!Input.GetKey(KeyCode.LeftShift))
                             _cursor.ResetObjectUnderCursor();
 
@@ -166,7 +167,7 @@ public class BilderSystem : MonoBehaviour, IInjectable, IService
                                 Grid[Mathf.FloorToInt(cell.transform.position.x), Mathf.FloorToInt(cell.transform.position.z)].MakeNodeSetup(NodeType.Bilding);
                             }
                         }
-                        bilding.TryGetComponent(out HouseManipilation house);
+                        bilding.TryGetComponent(out StructureInformation house);
                         house?.SetHouseOnGround();
                         house?.Injecting();
                     }
@@ -277,8 +278,8 @@ public class BilderSystem : MonoBehaviour, IInjectable, IService
     public void SetRoadMarksPositions(GameObject road)
     {
         road.TryGetComponent(out RoadInfo roadInfo);
-        roadInfo.RoadSetDirectionEvent.Invoke();
-        roadInfo.GetIRoadEvent.Invoke(roadInfo);
+        //roadInfo.SetConnectionToRoadInfo();
+        roadInfo.SetLastMarksPosition();
     }
     public List<Vector3Int> CheckNeighbors(Vector3Int position)
     {

@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class RoadInfo4Way : MonoBehaviour, IRoad
+public class RoadInfo4Way : RoadInfo
 {
     [SerializeField] private List<Mark> _roadPointsFirst;
     [SerializeField] private List<Mark> _roadPointsSecond;
@@ -32,7 +32,7 @@ public class RoadInfo4Way : MonoBehaviour, IRoad
     public Vector3Int pointOfFourSide;
 
 
-    public void SetDirectionToDiffrentPath()
+    public override void  SetLastMarksPosition()
     {
         SetDirection(ref pointOfFirstSide, _lastMarkFirstSide);
         SetDirection(ref pointOfSecondSide, _lastMarkSecondSide);
@@ -44,7 +44,7 @@ public class RoadInfo4Way : MonoBehaviour, IRoad
     {
         positionToSet = new Vector3Int(Mathf.FloorToInt(lastMarkOfPath.transform.position.x), 0, Mathf.FloorToInt(lastMarkOfPath.transform.position.z));
     }
-    public List<Mark> Getpath(Vector3Int from, Vector3Int to)
+    public override List<Mark> Getpath(Vector3Int from, Vector3Int to)
     {
 
         if (from == pointOfFourSide)
@@ -87,8 +87,8 @@ public class RoadInfo4Way : MonoBehaviour, IRoad
         throw new System.Exception($"Vector {from} and {to} dosnt compare if some path(4Way)");
     }
 
-    public void SetConnectionToRoadInfo(RoadInfo roadInfo)
-    {
-        roadInfo.SetConnection(this);
-    }
+    //public  void SetConnectionToRoadInfo()
+    //{
+    //   SetConnection(this);
+    //}
 }

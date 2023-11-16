@@ -8,8 +8,6 @@ public class UITest : MonoBehaviour
     private void OnEnable()
     {
         VisualElement root = GetComponent<UIDocument>().rootVisualElement;
-        Button buttonStart = root.Q<Button>("Button");
-
-        buttonStart.clicked += house.Test;
+        Button buttonStart = root.Q<Button>("Button");      
     }
 }
