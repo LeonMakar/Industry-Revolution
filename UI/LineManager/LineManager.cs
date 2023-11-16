@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 public class LineManager : MonoBehaviour, IService
 {
@@ -19,11 +20,17 @@ public class LineManager : MonoBehaviour, IService
         CurrentLine.LineRoots.Add(root);
     }
 
-    public void DiactivateOldLineRoots()
+    public void DiactivateOldLineRoots(PointerEventData eventData)
     {
-        foreach (var root in OldLine.LineRoots)
-        { 
-            root.gameObject.SetActive(false);
+        if (OldLine != null && OldLine != CurrentLine)
+        {
+            foreach (var root in OldLine.LineRoots)
+                root.gameObject.SetActive(false);
+            OldLine.DiactivateLineVisualization();
+            OldLine.CanChangeImageAlfaChanel = true;
+            OldLine.IsLineActive = false;
+            OldLine.OnPointerExit(eventData);
+           
         }
     }
     public void ActivateCurrentLineRoots()
@@ -31,18 +38,13 @@ public class LineManager : MonoBehaviour, IService
         foreach (var root in CurrentLine.LineRoots)
         {
             root.gameObject.SetActive(true);
+            CurrentLine.ActivateLineVisualization();
         }
     }
     public void SetCurrentLine(Line line)
     {
         CurrentLine = line;
-        foreach (var item in _lines)
-        {
-            if (line == item)
-            {
 
-            }
-        }
     }
 
 

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -17,8 +18,8 @@ public class Line : MonoBehaviour, IPointerClickHandler, IInjectable, IPointerEn
 
     private LineManager _lineManager;
 
-    private bool CanChangeImageAlfaChanel = true;
-
+    public bool CanChangeImageAlfaChanel = true;
+    public bool IsLineActive = false;
     private CarAI _carAI;
 
     public Dictionary<Type, Type> ServiceAndImplamentation { get; } = new Dictionary<Type, Type>()
@@ -42,6 +43,17 @@ public class Line : MonoBehaviour, IPointerClickHandler, IInjectable, IPointerEn
             }
         }
     }
+    public void DestroyLine()
+    {
+        foreach (var root in LineRoots)
+        {
+            Destroy(root.gameObject);
+        }
+        Destroy(gameObject);
+    }
+
+    public void DiactivateLineVisualization() => _lineVisualization.SetUnactiveLineRenderer();
+    public void ActivateLineVisualization() => _lineVisualization.SetActiveLineRenderer();
     public void SetUnActiveRootPoints()
     {
         foreach (var root in LineRoots)
@@ -51,18 +63,27 @@ public class Line : MonoBehaviour, IPointerClickHandler, IInjectable, IPointerEn
     }
     public void OnPointerClick(PointerEventData eventData)
     {
-        _lineManager.SetCurrentLine(this);
-        _lineManager.ActivateCurrentLineRoots();
-        if (_lineManager.OldLine != null)
+        if (!IsLineActive)
         {
-            _lineManager.DiactivateOldLineRoots();
-            _lineManager.OldLine.CanChangeImageAlfaChanel = true;
-            _lineManager.OldLine.OnPointerExit(eventData);
+            _lineManager.SetCurrentLine(this);
+            foreach (var root in LineRoots)
+                root.gameObject.SetActive(true);
+            ActivateLineVisualization();
+            _lineManager.DiactivateOldLineRoots(eventData);
+            _lineManager.OldLine = this;
+            ChangeImageAlfaChanel(0.2f);
+            CanChangeImageAlfaChanel = false;
+            IsLineActive = true;
         }
-        _lineManager.OldLine = this;
-        ChangeImageAlfaChanel(0.2f);
-        CanChangeImageAlfaChanel = false;
-
+        else
+        {
+            DiactivateLineVisualization();
+            foreach (var root in LineRoots)
+                root.gameObject.SetActive(false);
+            ChangeImageAlfaChanel(0.0f);
+            CanChangeImageAlfaChanel = true;
+            IsLineActive = false;
+        }
     }
     public void ChangeImageAlfaChanel(float alfaValue)
     {
@@ -98,11 +119,10 @@ public class Line : MonoBehaviour, IPointerClickHandler, IInjectable, IPointerEn
                     nextPosition = LineRoots[i + 1].RootPisition;
                     _marksToMoove.AddRange(_carAI.CreatPathGridPoints(currentPoint, nextPosition));
                 }
-
             }
-            _marksToMoove.AddRange(_carAI.CreatPathGridPoints(LineRoots[LineRoots.Count - 1].RootPisition, LineRoots[0].RootPisition));
+            if (LineRoots.Last().RootPisition != LineRoots.First().RootPisition)
+                _marksToMoove.AddRange(_carAI.CreatPathGridPoints(LineRoots[LineRoots.Count - 1].RootPisition, LineRoots[0].RootPisition));
             _lineVisualization.DrowLine(_marksToMoove.Count, _marksToMoove);
-
         }
     }
 }

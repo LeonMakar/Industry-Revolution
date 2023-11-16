@@ -21,4 +21,8 @@ public class LineVisualization : MonoBehaviour
     {
         _lineRenderer.positionCount = 0;
     }
+
+    public void SetUnactiveLineRenderer() => _lineRenderer.enabled = false;
+    public void SetActiveLineRenderer() => _lineRenderer.enabled = true;
+
 }

@@ -15,6 +15,7 @@ public class AddRootScript : MonoBehaviour, IInjectable
     [SerializeField] private LineManager _lineManager;
 
 
+    private Vector3Int _lastRootPoint = new();
     private ColorAdjustments _colorAdjustments;
     private bool _diactivationFlag = false;
 
@@ -62,7 +63,7 @@ public class AddRootScript : MonoBehaviour, IInjectable
 
     public void AddPoint(StructureAddedForRootSignal structure)
     {
-        if (_lineManager.CurrentLine != null)
+        if (_lineManager.CurrentLine != null && _lastRootPoint != structure.StructureInformation.CurrentPosition)
         {
             CanvasFactory canvasFactory = new CanvasFactory();
             canvasFactory.PathForCanvasPrefab = _pathToRootPointPrefab;
@@ -71,6 +72,7 @@ public class AddRootScript : MonoBehaviour, IInjectable
             _lineManager.AddNewRootToCurrentLine(rootPoint.GetComponent<LineRootPoint>());
             rootPoint.TryGetComponent(out LineRootPoint root);
             root.ChangeRootPosition(structure.StructureInformation.CurrentPosition);
+            _lastRootPoint = structure.StructureInformation.CurrentPosition;
             _lineManager.CurrentLine.CreatPath();
         }
 
