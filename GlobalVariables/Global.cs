@@ -9,7 +9,7 @@ public class Global : IInjectable, IService
     public bool CreateRootPointIsActive => _houseIsReadyToBeEndPoint;
     public int Deveation = 0;
 
-    private StructureInformation _houseManipulation;
+    private Structure _houseManipulation;
 
     public Dictionary<Type, Type> ServiceAndImplamentation { get; } = new Dictionary<Type, Type>()
     {

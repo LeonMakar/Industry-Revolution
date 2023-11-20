@@ -40,4 +40,5 @@ public enum NodeType
     Road = 1,
     Bilding = 2,
     Obstacle = 3,
+    CoalMine = 4,
 }

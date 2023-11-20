@@ -14,7 +14,7 @@ public class HouseDisplay : MonoBehaviour, IInjectable, IService
 
 
     private Global _global;
-    private StructureInformation _currentHouse;
+    private Structure _currentHouse;
     private CarAI _carAI;
 
 

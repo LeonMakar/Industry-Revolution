@@ -4,8 +4,8 @@ using UnityEngine;
 
 public class StructureAddedForRootSignal
 {
-    public StructureInformation StructureInformation {  get; private set; }
-    public StructureAddedForRootSignal(StructureInformation info)
+    public Structure StructureInformation {  get; private set; }
+    public StructureAddedForRootSignal(Structure info)
     {
        StructureInformation = info;
     }

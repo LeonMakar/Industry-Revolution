@@ -61,9 +61,10 @@ public class Cursor : MonoBehaviour, IInjectable, IService
             Destroy(_objectUnderCursor.gameObject);
         _objectUnderCursor = Instantiate(gameObject);
         _objectUnderCursor.transform.position = new Vector3(_cursor.transform.position.x, 0.02f, _cursor.transform.position.z);
-        _objectUnderCursor.TryGetComponent<ObjectDataForBilding>(out ObjectDataForBilding selectedObject);
+        _objectUnderCursor.TryGetComponent(out ObjectDataForBilding selectedObject);
+        selectedObject.Structure?.Injecting();
         _cursor.SetActive(false);
-        _eventBus.Invoke<SelectedObjectSignal>(new SelectedObjectSignal(selectedObject));
+        _eventBus.Invoke(new SelectedObjectSignal(selectedObject));
         _bildingData = selectedObject;
         CursorIsEmpty = false;
     }

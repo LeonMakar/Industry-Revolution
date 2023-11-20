@@ -9,7 +9,7 @@ using UnityEngine;
 /// </summary>
 public class BilderSystem : MonoBehaviour, IInjectable, IService
 {
-    private ObjectDataForBilding _selectedObjectData;
+    private ObjectDataForBilding _objectUnderCursorData;
 
     public FirstCity _firstCity = new FirstCity(5);
     public SecondCity SecondCity = new SecondCity(6);
@@ -85,7 +85,7 @@ public class BilderSystem : MonoBehaviour, IInjectable, IService
 
 
     private void SetSelectedObject(SelectedObjectSignal signal)
-        => _selectedObjectData = signal.ObjectData;
+        => _objectUnderCursorData = signal.ObjectData;
 
     public void DestroyRoadFromTemporaryRoads(int positionX, int positionZ)
         => Destroy(TemporaryRoads[(new Vector3Int(positionX, 0, positionZ))].gameObject);
@@ -95,81 +95,27 @@ public class BilderSystem : MonoBehaviour, IInjectable, IService
 
     private void BildBildingWhenClick(MouseIsClickedSignal signal)
     {
-        bool canBild = false;
-        if (_selectedObjectData != null)
-            if (_selectedObjectData.SelectedObjectStructureType == StructureType.Bilding)
-            {
-                if (!_selectedObjectData.IsNotSemmetric)
-                {
-                    for (int i = 0; i < _selectedObjectData.BildingSize.x; i++)
-                    {
-                        for (int j = 0; j < _selectedObjectData.BildingSize.y; j++)
-                        {
-                            if (signal.position != null)
-                            {
-                                if (CheckThatIsNodeFree(signal.position.x + i, signal.position.z + j))
-                                    canBild = true;
-                                else
-                                {
-                                    canBild = false;
-                                    Debug.Log("Node is not Empty");
-                                    return;
-                                }
-                            }
-                            else
-                            {
-                                Debug.Log("signal is null");
-                                return;
-                            }
-                        }
-                    }
-                }
-                else
-                {
-                    foreach (var cells in _selectedObjectData.CellsPosition)
-                    {
-                        if (CheckThatIsNodeFree(Mathf.FloorToInt(cells.transform.position.x), Mathf.FloorToInt(cells.transform.position.z)))
-                            canBild = true;
-                        else
-                        {
-                            canBild = false;
-                            return;
-                        }
-                    }
-                }
-                if (canBild)
+        if (_objectUnderCursorData != null)
+            if (_objectUnderCursorData.SelectedObjectStructureType == StructureType.Bilding)
+            {              
+                if (_objectUnderCursorData.Structure.CheckPositionConformity(_objectUnderCursorData,signal))
                 {
                     _bilder = new BildingFactory();
-                    if (_selectedObjectData.PathToPrefab != null)
+                    if (_objectUnderCursorData.PathToPrefab != null)
                     {
                         BildingFactory bilder = _bilder as BildingFactory;
-                        bilder.PathForBildingPrefab = _selectedObjectData.PathToPrefab;
+                        bilder.PathForBildingPrefab = _objectUnderCursorData.PathToPrefab;
                         GameObject bilding = bilder.Bild(BildingType.Bilding);
                         bilding.transform.position = signal.position;
-                        bilding.TryGetComponent<ObjectDataForBilding>(out ObjectDataForBilding bildingData);
-                        bildingData.BildingPrefabForRotate.transform.Rotate(Vector3.forward, _selectedObjectData.RotationAngle);
+                        bilding.TryGetComponent(out ObjectDataForBilding bildingData);
+                        bildingData.BildingPrefabForRotate.transform.Rotate(Vector3.up, _objectUnderCursorData.RotationAngle);
 
                         if (!Input.GetKey(KeyCode.LeftShift))
                             _cursor.ResetObjectUnderCursor();
 
-                        if (!bildingData.IsNotSemmetric)
-                            for (int i = 0; i < _selectedObjectData.BildingSize.x; i++)
-                            {
-                                for (int j = 0; j < _selectedObjectData.BildingSize.y; j++)
-                                {
-                                    Grid[signal.position.x + i, signal.position.z + j].MakeNodeSetup(NodeType.Bilding);
-                                }
-                            }
-                        else
-                        {
-                            foreach (var cell in _selectedObjectData.CellsPosition)
-                            {
-                                Grid[Mathf.FloorToInt(cell.transform.position.x), Mathf.FloorToInt(cell.transform.position.z)].MakeNodeSetup(NodeType.Bilding);
-                            }
-                        }
-                        bilding.TryGetComponent(out StructureInformation house);
-                        house?.SetHouseOnGround();
-                        house?.Injecting();
+                        bilding.TryGetComponent(out Structure someBilding);
+                        someBilding?.Injecting();
+                        someBilding?.SetStructureOnGround(bildingData, _objectUnderCursorData, signal);
                     }
                     else
                         Debug.Log("Path to Prefab is null");
@@ -182,8 +128,8 @@ public class BilderSystem : MonoBehaviour, IInjectable, IService
     }
     private void BildRoadWhenClick(MouseIsClickedSignal signal)
     {
-        if (_selectedObjectData != null)
-            if (_selectedObjectData.SelectedObjectStructureType == StructureType.Road)
+        if (_objectUnderCursorData != null)
+            if (_objectUnderCursorData.SelectedObjectStructureType == StructureType.Road)
             {
                 if (signal.position != null)
                 {
@@ -209,8 +155,8 @@ public class BilderSystem : MonoBehaviour, IInjectable, IService
     }
     private void BildRoadWhenHold(MouseIsHoldSignal signal)
     {
-        if (_selectedObjectData != null)
-            if (_selectedObjectData.SelectedObjectStructureType == StructureType.Road)
+        if (_objectUnderCursorData != null)
+            if (_objectUnderCursorData.SelectedObjectStructureType == StructureType.Road)
             {
                 DestroyTemporaryRoads();
                 _roadsToRecheck.Clear();

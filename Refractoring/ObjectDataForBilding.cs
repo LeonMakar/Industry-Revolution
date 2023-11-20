@@ -5,12 +5,14 @@ using UnityEngine;
 public class ObjectDataForBilding : MonoBehaviour
 {
     [SerializeField] private StructureType _selectedObjectStructureType;
+    
 
     [SerializeField, Space(10)] private Size _bildingSize;
     [SerializeField, Space(10)] private string _pathToResourcesPrefab;
 
     [field: SerializeField] public bool IsNotSemmetric { get; private set; }
     [field: SerializeField] public List<GameObject> CellsPosition { get; private set; }
+    [field: SerializeField] public Structure Structure { get; private set; }
 
     public IService service;
     public int RotationAngle { get; private set; }
@@ -20,11 +22,7 @@ public class ObjectDataForBilding : MonoBehaviour
     public GameObject BildingPrefabForRotate => _bildingPrefabForRotate;
 
 
-    [System.Serializable]
-    public struct Size
-    {
-        public int x, y;
-    }
+
 
     public StructureType SelectedObjectStructureType => _selectedObjectStructureType;
     public Size BildingSize => _bildingSize;
@@ -35,7 +33,14 @@ public class ObjectDataForBilding : MonoBehaviour
         if (_bildingPrefabForRotate != null)
         {
             RotationAngle += 90;
-            _bildingPrefabForRotate.transform.Rotate(Vector3.forward, 90);
+            _bildingPrefabForRotate.transform.Rotate(Vector3.up, 90);
         }
     }
+}
+
+
+[System.Serializable]
+public struct Size
+{
+    public int x, y;
 }
